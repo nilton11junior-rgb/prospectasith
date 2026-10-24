@@ -102,7 +102,8 @@ class H(BaseHTTPRequestHandler):
             return bool(c) and sessoes.get(c, 0) > time.time()
 
     def _publico(self, metodo, path):
-        return path in ("/", "/index.html", "/favicon.ico") or path.startswith("/api/auth/") or (metodo == "POST" and path == "/api/wa/evento")
+        return (path in ("/", "/index.html", "/favicon.ico") or path.startswith(("/api/auth/", "/static/"))
+                or (metodo == "POST" and path == "/api/wa/evento"))
 
     def _guarda(self, metodo):
         path = self._rota()
@@ -141,6 +142,19 @@ class H(BaseHTTPRequestHandler):
         self._extra = [("Set-Cookie", f"prospecta={nova_sessao()}; Path=/; Max-Age={30 * 86400}; HttpOnly; SameSite=Strict")]
         return self._envia(200, {"ok": True})
 
+    TIPOS = {".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml",
+             ".png": "image/png"}
+
+    def _estatico(self, path):
+        """Arquivos de painel/static/ (CSS e JS da tela). Bloqueia ../ e qualquer coisa fora da pasta."""
+        base = os.path.realpath(os.path.join(HERE, "static"))
+        alvo = os.path.realpath(os.path.join(base, urllib.parse.unquote(path[len("/static/"):])))
+        tipo = self.TIPOS.get(os.path.splitext(alvo)[1].lower())
+        if not alvo.startswith(base + os.sep) or not tipo or not os.path.isfile(alvo):
+            return self._envia(404, {"erro": "não encontrado"})
+        with open(alvo, "rb") as f:
+            return self._envia(200, f.read(), tipo)
+
     # ── atendimento: WhatsApp, conversas, agente, agenda ──
     def _atendimento(self, metodo, path):
         return rotas_atendimento.atender(self, metodo, path)
@@ -159,6 +173,8 @@ class H(BaseHTTPRequestHandler):
         if path in ("/", "/index.html"):
             with open(os.path.join(HERE, "index.html"), "rb") as f:
                 return self._envia(200, f.read(), "text/html; charset=utf-8")
+        if path.startswith("/static/"):
+            return self._estatico(path)
         if path == "/api/status":
             return self._envia(200, {"motor": motor_ok(), "fila": len(fila)})
         if path == "/api/municipios":

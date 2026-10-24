@@ -218,6 +218,15 @@ class Http(unittest.TestCase):
     def test_webhook_exige_token_do_whatsapp(self):
         self.assertEqual(self.req("/api/wa/evento", metodo="POST", corpo={})[0], 401)
 
+    def test_estatico_serve_css_js_e_bloqueia_fuga(self):
+        for caminho in ("/static/app.css", "/static/js/base.js"):
+            with urllib.request.urlopen(self.base + caminho, timeout=10) as r:
+                self.assertEqual(r.status, 200)
+        for caminho in ("/static/../server.py", "/static/..%2Fdados%2Fapi_token", "/static/js/nao-existe.js"):
+            with self.assertRaises(urllib.error.HTTPError) as e:
+                urllib.request.urlopen(self.base + caminho, timeout=10)
+            self.assertEqual(e.exception.code, 404, caminho)
+
     def test_envio_so_para_lead_do_crm(self):
         st, r = self.req("/api/wa/enviar", token=app.API_TOKEN, metodo="POST", corpo={"numero": "5511999999999", "texto": "oi"})
         self.assertEqual(st, 400)
