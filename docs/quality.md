@@ -6,7 +6,7 @@
 |---|---|---|
 | `python -X utf8 scripts/verificar.py` | tudo abaixo de uma vez; sai com código 1 se algo falhar | comportamento com WhatsApp/IA reais |
 | sintaxe Python (dentro do verificar) | todos os `.py` compilam (em memória, sem `.pyc`) | erro de lógica |
-| `python -X utf8 -m unittest discover -s painel -p "test_*.py"` | segmentos, variáveis e rodízio, follow-up, agenda sem conflito, eventos do WhatsApp (só CRM, optout, duplicada), senha, login obrigatório, token, webhook, envio só para CRM, `/static/` sem fuga de pasta | envio real pelo WAHA, chamada real à IA, busca real no Google |
+| `python -X utf8 -m unittest discover -s painel -p "test_*.py"` | segmentos, variáveis e rodízio, follow-up, agenda sem conflito, eventos do WhatsApp (só CRM, optout, duplicada), senha, login obrigatório, token, webhook, envio só para CRM, `/static/` sem fuga de pasta e as regressões de segurança (Host, Origin/CSRF, corpo grande, bloqueio de login, opt-out por número, DDI 55, SSRF, limites da IA) | envio real pelo WAHA, chamada real à IA, busca real no Google |
 | `python -X utf8 -m unittest discover -s scripts -p "test_*.py"` | CLI do kit (grade, dedupe, e-mails, redes) | motor real |
 | sintaxe JS (dentro do verificar, precisa de Node) | `painel/static/js/*.js` sem erro de sintaxe | renderização das telas |
 | tamanho de arquivo (aviso) | nenhum arquivo do painel passa de 400 linhas | — |

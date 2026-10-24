@@ -58,9 +58,14 @@ def wa_status():
     return out
 
 
-def chave_num(d):
-    """Número -> chave de comparação: DDD + 8 últimos dígitos (ignora 55 e o 9º dígito)."""
+def chave_num(d, internacional=False):
+    """Número -> chave de comparação: DDD + 8 últimos dígitos (ignora 55 e o 9º dígito).
+
+    internacional=True (números vindos do WhatsApp, sempre com DDI): só aceita DDI 55, senão um +7 99…
+    da Rússia viraria o DDD 79 de um lead."""
     d = re.sub(r"\D", "", d or "")
+    if internacional and not (d.startswith("55") and len(d) in (12, 13)):
+        return ""
     if d.startswith("55") and len(d) in (12, 13):
         d = d[2:]
     if len(d) == 11 and d[2] == "9":
@@ -68,9 +73,9 @@ def chave_num(d):
     return d if len(d) == 10 else ""
 
 
-def lead_por_numero(numero):
+def lead_por_numero(numero, internacional=False):
     """Só números exatos que já estão no CRM (WhatsApp ou telefone do lead). Senão None."""
-    k = chave_num(numero)
+    k = chave_num(numero, internacional)
     if not k:
         return None
     with lock:
@@ -78,6 +83,14 @@ def lead_por_numero(numero):
             if k in (chave_num(l.get("whatsapp")), chave_num(l.get("tel_digitos"))):
                 return l
     return None
+
+
+def numero_bloqueado(numero):
+    """Opt-out vale pelo número, não pelo registro: um lead duplicado com o mesmo telefone também fica de fora."""
+    k = chave_num(numero)
+    with lock:
+        return bool(k) and any(l.get("optout") and k in (chave_num(l.get("whatsapp")), chave_num(l.get("tel_digitos")))
+                               for l in leads.values())
 
 
 def salvar_conversas():
@@ -115,9 +128,12 @@ def wa_enviar(lead, texto, de="eu", numero=None):
     texto = (texto or "").strip()
     if not texto:
         raise ValueError("Mensagem vazia.")
+    proprios = {chave_num(lead.get("whatsapp")), chave_num(lead.get("tel_digitos"))} - {""}
     numero = re.sub(r"\D", "", numero or lead.get("whatsapp") or lead.get("tel_digitos") or "")
-    if not lead_por_numero(numero):
-        raise ValueError("Só envio para números de leads do CRM.")
+    if not lead_por_numero(numero) or chave_num(numero) not in proprios:
+        raise ValueError("Só envio para o número do próprio lead do CRM.")
+    if lead.get("optout") or numero_bloqueado(numero):
+        raise ValueError("Esse número pediu para não receber mensagens.")
     chat = wa_verifica(numero)
     if not chat:
         with lock:
@@ -176,7 +192,7 @@ def wa_evento(ev):
     numero = _numero_evento(p)
     if not numero or not texto:
         return
-    lead = lead_por_numero(numero)
+    lead = lead_por_numero(numero, internacional=True)
     if not lead:
         return  # conversa pessoal / número fora do CRM: ignorada, nada é salvo
     c = conversa_de(numero, lead)

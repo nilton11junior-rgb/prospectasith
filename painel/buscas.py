@@ -1,10 +1,50 @@
 """Fila de buscas no motor do Google Maps e enriquecimento pelo site da empresa (e-mail, WhatsApp, redes)."""
-import csv, io, json, re, time
+import csv, functools, io, ipaddress, json, re, socket, time
 import urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from estado import TAMANHOS, buscas, fila, fila_cond, leads, lock, salvar_busca, salvar_leads
 from normaliza import lead_de, localizar, mesclar_leads, whatsapp_em
 from estado import kit
+
+
+# ── Visita a sites de terceiros só em endereço público (o "site" vem do Google e pode apontar para
+#    127.0.0.1, rede interna ou o WAHA; isso viraria SSRF) ──
+def url_publica(url):
+    try:
+        u = urllib.parse.urlsplit(url if "://" in url else "http://" + url)
+        if u.scheme not in ("http", "https") or not u.hostname or (u.port not in (None, 80, 443)):
+            return False
+        ips = {i[4][0] for i in socket.getaddrinfo(u.hostname, u.port or (443 if u.scheme == "https" else 80))}
+    except (OSError, ValueError, UnicodeError):
+        return False
+    return bool(ips) and all(ipaddress.ip_address(ip.split("%")[0]).is_global for ip in ips)
+
+
+class _SoPublico(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not url_publica(newurl):
+            raise urllib.error.URLError("redirecionamento para endereço não público")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_abridor = urllib.request.build_opener(_SoPublico)
+
+
+def busca_html(url, timeout=8):
+    if not url or not url_publica(url):
+        return ""
+    url = url if url.startswith(("http://", "https://")) else "http://" + url
+    try:
+        r = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; " + kit.UA + ")", "Accept": "text/html"})
+        with _abridor.open(r, timeout=timeout) as resp:
+            return resp.read(400_000).decode("utf-8", "replace")
+    except Exception:
+        return ""
+
+
+@functools.lru_cache(maxsize=512)
+def busca_html_cache(url):
+    return busca_html(url)
 
 
 CONTATO_RE = re.compile(r"contato|fale|sobre|quem-somos|quem_somos|atendimento|contact|about", re.I)
@@ -39,7 +79,7 @@ def enriquecer(lead, redes):
         wa = whatsapp_em(site)
         if wa: lead["whatsapp"], lead["whatsapp_origem"] = wa, "site"
         return
-    home = kit._fetch_cached(site)
+    home = busca_html_cache(site)
     if not home:
         return
     wa = whatsapp_em(home)
@@ -51,7 +91,7 @@ def enriquecer(lead, redes):
     if not lead["email"]:
         achados = kit.extract_emails(home, site)
         if not achados:
-            paginas = "".join(kit._fetch_html(u, timeout=8) for u in links_contato(home, site))
+            paginas = "".join(busca_html(u) for u in links_contato(home, site))
             achados = kit.extract_emails(paginas, site)
             if not lead["whatsapp"]:
                 wa = whatsapp_em(paginas)

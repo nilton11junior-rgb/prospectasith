@@ -16,7 +16,7 @@ import hmac, json, os, re, socket, sys, threading, time
 import urllib.error, urllib.parse, urllib.request, uuid, webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from roteiros import CAMPANHAS_PADRAO, FOLLOWUP_PADRAO
-from estado import API_TOKEN, ARQ_AGENDA, ARQ_CONFIG, ARQ_CONVERSAS, ARQ_LEADS, ARQ_SESSOES, CONFIG_PADRAO, DADOS, DIR_BUSCAS, HERE, NOME_STATUS, PORT, STATUS_LEAD, TAMANHOS, _grava, _le, agenda_dados, auth_configurado, buscas, confere_senha, config, conversas, define_senha, fila, fila_cond, leads, lock, nova_sessao, registrar, salvar_busca, salvar_config, salvar_leads, sessoes
+from estado import API_TOKEN, ARQ_AGENDA, ARQ_CONFIG, ARQ_CONVERSAS, ARQ_LEADS, ARQ_SESSOES, CONFIG_PADRAO, DADOS, DIR_BUSCAS, HERE, NOME_STATUS, PORT, STATUS_LEAD, TAMANHOS, _le, agenda_dados, buscas, config, conversas, fila, fila_cond, leads, lock, registrar, salvar_busca, salvar_config, salvar_leads, sessoes
 from normaliza import mesclar_leads, municipios
 from campanhas import SEGMENTOS
 from visoes import lead_publico, motor_ok, painel_inicio, resumo_busca
@@ -25,6 +25,8 @@ from disparo import disparador, respondedor
 from buscas import trabalhador
 from estado import kit
 import rotas_atendimento
+import rotas_auth
+from seguranca_http import (CABECALHOS_SEGURANCA, LIMITE_CORPO, host_permitido, nome_host, origem_permitida)
 
 
 def carregar():
@@ -75,11 +77,13 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Content-Type", tipo)
         self.send_header("Content-Length", str(len(dados)))
         self.send_header("Cache-Control", "no-store")
+        for k, v in CABECALHOS_SEGURANCA:
+            self.send_header(k, v)
         self.end_headers()
         self.wfile.write(dados)
 
     def _corpo(self):
-        n = int(self.headers.get("Content-Length") or 0)
+        n = min(int(self.headers.get("Content-Length") or 0), LIMITE_CORPO)  # _guarda já recusa acima disso
         return json.loads(self.rfile.read(n) or b"{}")
 
     def _rota(self):
@@ -105,42 +109,37 @@ class H(BaseHTTPRequestHandler):
         return (path in ("/", "/index.html", "/favicon.ico") or path.startswith(("/api/auth/", "/static/"))
                 or (metodo == "POST" and path == "/api/wa/evento"))
 
+    def _token_ok(self):
+        tok = self.headers.get("X-Prospecta-Token")
+        return bool(tok) and hmac.compare_digest(tok, API_TOKEN)
+
     def _guarda(self, metodo):
+        """Barreiras antes de qualquer rota. Devolve True se já respondeu (bloqueou)."""
         path = self._rota()
+        webhook = metodo == "POST" and path == "/api/wa/evento"
+        # DNS rebinding: só aceita os nomes do próprio computador (e o do Tailscale); o container do WAHA
+        # chega como host.docker.internal, só no webhook
+        if not host_permitido(nome_host(self.headers.get("Host")), webhook):
+            self._envia(403, {"erro": "Host não permitido."})
+            return True
+        if int(self.headers.get("Content-Length") or 0) > LIMITE_CORPO:
+            self._envia(413, {"erro": "Pedido grande demais."})
+            return True
+        # CSRF a partir de outra porta do localhost (SameSite não separa portas): pedido do navegador que
+        # muda algo precisa vir de origem permitida e em JSON (form/text-plain sem preflight não passa)
+        if metodo != "GET" and not webhook and not self._token_ok():
+            origem = self.headers.get("Origin")
+            json_ok = (self.headers.get("Content-Type") or "").lower().startswith("application/json")
+            if not json_ok or not origem or not origem_permitida(origem, self.headers.get("Host")):
+                self._envia(403, {"erro": "Origem não permitida."})
+                return True
         if self._publico(metodo, path) or self._autorizado():
             return False
         self._envia(401, {"erro": "Faça login.", "login": True})
         return True
 
     def _auth(self, metodo, path):
-        if path == "/api/auth/estado" and metodo == "GET":
-            return self._envia(200, {"configurado": auth_configurado(), "logado": self._autorizado()})
-        if metodo != "POST":
-            return self._envia(404, {"erro": "não encontrado"})
-        d = self._corpo()
-        senha = str(d.get("senha") or "")
-        if path == "/api/auth/criar":
-            if auth_configurado():
-                return self._envia(409, {"erro": "A senha já foi criada."})
-            if self.client_address[0] not in ("127.0.0.1", "::1"):
-                return self._envia(403, {"erro": "Crie a senha no próprio computador."})
-            if len(senha) < 6:
-                return self._envia(400, {"erro": "Use pelo menos 6 caracteres."})
-            define_senha(senha)
-        elif path == "/api/auth/entrar":
-            if not confere_senha(senha):
-                time.sleep(1.5)
-                return self._envia(401, {"erro": "Senha incorreta."})
-        elif path == "/api/auth/sair":
-            with lock:
-                sessoes.pop(self._cookie(), None)
-                _grava(ARQ_SESSOES, sessoes)
-            self._extra = [("Set-Cookie", "prospecta=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict")]
-            return self._envia(200, {"ok": True})
-        else:
-            return self._envia(404, {"erro": "não encontrado"})
-        self._extra = [("Set-Cookie", f"prospecta={nova_sessao()}; Path=/; Max-Age={30 * 86400}; HttpOnly; SameSite=Strict")]
-        return self._envia(200, {"ok": True})
+        return rotas_auth.atender(self, metodo, path)
 
     TIPOS = {".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml",
              ".png": "image/png"}

@@ -18,7 +18,7 @@ async function mostraLogin(){
     if(!r.ok) return $("#lgH").textContent = j.erro || "Não deu certo.";
     location.reload(); };
 }
-async function sair(){ await fetch("/api/auth/sair",{method:"POST"}); location.reload(); }
+async function sair(){ await fetch("/api/auth/sair",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}); location.reload(); }
 
 // ═════════════ WHATSAPP INTERNO ═════════════
 const QUEM = {lead:"", eu:"Você", ia:"IA", auto:"Disparo automático", followup:"Follow-up automático"};

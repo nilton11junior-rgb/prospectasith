@@ -58,6 +58,10 @@ def reservar(lead, inicio, origem="manual"):
             raise ValueError("Horário inválido.")
         if inicio not in slots_do_dia(dia):
             raise ValueError("Horário indisponível.")
+        agora = datetime.now(BR).strftime(FMT)
+        if origem == "ia" and any(r["lead_id"] == lead["id"] and r.get("estado") != "cancelada" and r["inicio"] >= agora
+                                  for r in agenda_dados.get("reservas", [])):
+            raise ValueError("Esse lead já tem uma chamada marcada.")  # a IA não reserva vários horários por lead
         r = {"id": uuid.uuid4().hex[:12], "lead_id": lead["id"], "nome": lead["nome"], "inicio": inicio,
              "duracao": int(config["agenda"]["duracao"]), "origem": origem, "estado": "marcada", "criado_em": time.time()}
         agenda_dados.setdefault("reservas", []).append(r)

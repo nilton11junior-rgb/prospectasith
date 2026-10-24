@@ -25,13 +25,13 @@
 | 9 documentos do manifesto | feito | projeto | `README.md`, `PRODUCT.md`, `AGENTS.md`, `CLAUDE.md`, `docs/architecture.md`, `design.md`, `onboarding.md`, `quality.md`, `setup.md`; README do kit preservado em `KIT-README.md` |
 | AGENTS.md / CLAUDE.md | feito | projeto | bloco Caveman preservado; `CLAUDE.md` importa `@AGENTS.md` + só o específico do Claude |
 | Comandos canônicos + verificação | feito | projeto | `scripts/verificar.py` OK; autoteste com arquivos quebrados detectou Python e JS |
-| Testes do painel | feito | projeto | `painel/test_painel.py` 25/25 |
+| Testes do painel | feito | projeto | `painel/test_painel.py` 42/42 (inclui regressões de segurança) |
 | Refatoração por tamanho | feito | projeto | maior arquivo do painel: `server.py` 385 linhas; 11 telas renderizadas no navegador |
 | Codex (AGENTS.md + MCP) | configurado, não executado | projeto | `.codex/config.toml`; o Codex só carrega config de projeto confiável — não testado numa sessão do Codex |
 | MCP `prospecta` no Claude | validado | projeto | `initialize`, `tools/list` (15 ferramentas) e chamadas via stdio |
 | Caveman | reaproveitado | usuário | plugin instalado; regras em AGENTS.md e nos arquivos de outros clientes |
 | Memória em camadas | reaproveitado | usuário | auto-memória do Claude Code em `C:\Users\nilto\.claude\projects\C--Users-nilto\memory\` (índice `MEMORY.md`, fato `project-prospecta-gmaps-crm.md`); conteúdo durável do projeto nos docs versionados |
-| Revisão de segurança (prompt 13) | ver seção abaixo | projeto | relatório privado fora do repo |
+| Revisão de segurança (prompt 13) | feito + 7 correções, 2 mitigações | projeto | seção abaixo; relatório privado fora do repo |
 | Harness (prompt 14) + Harness2 nativo (prompt 15) | feito | descartável | seção abaixo |
 | Subagentes / seleção de modelo | feito | sessão | política em AGENTS.md; modelos registrados acima |
 | Superpowers | pendente do usuário | usuário | instalar: `/plugin marketplace add anthropics/claude-plugins-official` e `/plugin install superpowers@claude-plugins-official` (não dá pelo app nesta sessão) |
@@ -65,9 +65,26 @@ Melhoria (1 comparação de candidato, prompt 15): falha observada = arquivo tem
 
 Uma rodada é resultado de fumaça, não garantia de confiabilidade.
 
-## Revisão de segurança
+## Revisão de segurança (prompt 13, modo repositório)
 
-Pendente de registro (em andamento).
+- 24/10/2026, snapshot `7b3a9dc` (achados valem para `f41e3e6`), só leitura, subagente com o modelo principal. Relatório privado em `..\privado\seguranca-2026-10-24.md` (fora do repositório, sem segredos).
+- 9 achados (4 médios, 5 baixos). O revisor reproduziu F1, F2, F3 e F7 com script sintético (WAHA falso, pasta temporária); rodei o mesmo script no código antigo (reproduz as 4) e no corrigido (bloqueia).
+
+| Achado | Situação | Correção / teste |
+|---|---|---|
+| F1 CSRF de outra porta do localhost (SameSite não separa portas) | corrigido | pedido com cookie que muda algo exige `Origin` igual ao Host e `Content-Type: application/json` (`seguranca_http.py`); `test_post_do_navegador_exige_origem_e_json` |
+| F2 DNS rebinding / criar senha sem checar Host | corrigido | lista de Hosts (localhost, 127.0.0.1, ::1, `*.ts.net`; `host.docker.internal` só no webhook); criar senha só com Host local; bloqueio após 10 erros em 10 min; `test_host_estranho…`, `test_senha_so_criada…` |
+| F3 burlar opt-out com `lead_id` de outro / lead duplicado | corrigido | `wa_enviar` só envia para o número do próprio lead e recusa número com opt-out em qualquer registro; `test_nao_envia…`, `test_optout_vale_pelo_numero…` |
+| F4 MCP: `confirmar` é só argumento; injeção pode ligar o disparo | mitigado | MCP não liga mais o disparo (só mostra/desliga); instruções do servidor marcam textos de leads como dados; `numero` com URL-quote. Envio pelo MCP ainda depende da confirmação do cliente |
+| F5 lead manipula a IA (vazar anotações, vários horários, custo) | mitigado | anotações fora do prompt; regra no prompt de sistema; IA reserva no máximo 1 horário futuro por lead; teto de 30 respostas/dia por conversa; testes correspondentes. Vazar base/estratégia por injeção continua possível (baixo) |
+| F6 SSRF no enriquecimento por site | corrigido | só visita host que resolve para IP público, portas 80/443, inclusive em cada redirecionamento; `test_enriquecimento_so_em_endereco_publico`. Resta janela de DNS rebinding entre resolver e conectar (baixo) |
+| F7 número estrangeiro casando com DDD | corrigido | webhook só aceita DDI 55; envio usa o número do lead; `test_numero_estrangeiro_nao_vira_ddd` |
+| F8 link `javascript:` em site/Maps/redes | corrigido | `urlSegura()` na tela + CSP `script-src 'self'` |
+| F9 corpo sem limite e força bruta no login | corrigido | limite de 1 MB (413) e bloqueio global; `test_corpo_grande_recusado` |
+
+Endurecimento extra: `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, CSP (sem violações no navegador; 11 telas ok). Não aplicado (no relatório): cookie `Secure` atrás do Tailscale, sessões com hash, não devolver `str(e)` em erros, fixar a versão da imagem do WAHA, proteção contra replay do webhook.
+
+Não coberto: ataque com navegador real (SameSite/rebinding foram raciocinados e testados por cabeçalho), internos do WAHA e do motor (porta 8080 sem autenticação), comportamento real do modelo sob injeção, histórico do git (repositório novo).
 
 ## Para manter
 
@@ -80,4 +97,5 @@ Pendente de registro (em andamento).
 
 - Instalar Superpowers (e Ponytail se quiser) pelo `/plugin` no Claude Code.
 - Testar o MCP numa sessão do Codex com o projeto marcado como confiável.
+- Segurança: aprovar envios do MCP na tela do painel (F4) e aplicar o endurecimento restante listado acima.
 - `scripts/scrape.py` (451 linhas, do kit original) acima da referência; dividir só se for mexer nele.

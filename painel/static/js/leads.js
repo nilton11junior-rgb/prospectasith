@@ -124,7 +124,7 @@ function desenhaLead(){
       <div class="acts-grid">
         ${l.tel_digitos?`<a class="btn" href="tel:+${esc(l.tel_digitos)}" data-ev="ligacao">${ic("phone")}Ligar</a>`:`<button class="btn" disabled>${ic("phone")}Ligar</button>`}
         ${l.email?`<a class="btn" href="mailto:${esc(l.email.split(",")[0].trim())}" data-ev="email">${ic("mail")}E-mail</a>`:`<button class="btn" disabled>${ic("mail")}E-mail</button>`}
-        ${l.maps?`<a class="btn" href="${esc(l.maps)}" target="_blank" rel="noopener">${ic("pin")}Maps</a>`:`<button class="btn" disabled>${ic("pin")}Maps</button>`}
+        ${urlSegura(l.maps)?`<a class="btn" href="${esc(urlSegura(l.maps))}" target="_blank" rel="noopener">${ic("pin")}Maps</a>`:`<button class="btn" disabled>${ic("pin")}Maps</button>`}
       </div>
       <div class="sec-t">Etapa do funil</div>
       <div class="stsel" id="stsel">${STATUS.map(([v,n])=>`<button data-st="${v}" class="${l.status===v?"on s-"+v:""}">${n}</button>`).join("")}</div>
@@ -133,10 +133,10 @@ function desenhaLead(){
         <dt>Telefone</dt><dd class="num">${esc(l.telefone||"—")} ${l.tel_tipo?`<span class="pill nodot">${l.tel_tipo}</span>`:""}</dd>
         ${l.whatsapp&&l.whatsapp!==l.tel_digitos?`<dt>WhatsApp</dt><dd class="num">${fTel(l.whatsapp)}</dd>`:""}
         <dt>E-mail</dt><dd>${l.email?esc(l.email):'<span class="muted">não encontrado</span>'}</dd>
-        <dt>Site</dt><dd>${l.site?`<a href="${esc(l.site)}" target="_blank" rel="noopener">${esc(dominio(l.site))}</a>`:'<span style="color:var(--warn);font-weight:600">Não tem site</span>'}</dd>
-        ${l.instagram?`<dt>Instagram</dt><dd><a href="${esc(l.instagram)}" target="_blank" rel="noopener">${esc(l.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//,"@").replace(/\/$/,""))}</a></dd>`:""}
-        ${l.facebook?`<dt>Facebook</dt><dd><a href="${esc(l.facebook)}" target="_blank" rel="noopener">${esc(l.facebook.replace(/^https?:\/\/(www\.|m\.)?facebook\.com\//,""))}</a></dd>`:""}
-        ${l.linkedin?`<dt>LinkedIn</dt><dd><a href="${esc(l.linkedin)}" target="_blank" rel="noopener">abrir perfil</a></dd>`:""}
+        <dt>Site</dt><dd>${l.site?`<a href="${esc(urlSegura(l.site))}" target="_blank" rel="noopener">${esc(dominio(l.site))}</a>`:'<span style="color:var(--warn);font-weight:600">Não tem site</span>'}</dd>
+        ${l.instagram?`<dt>Instagram</dt><dd><a href="${esc(urlSegura(l.instagram))}" target="_blank" rel="noopener">${esc(l.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//,"@").replace(/\/$/,""))}</a></dd>`:""}
+        ${l.facebook?`<dt>Facebook</dt><dd><a href="${esc(urlSegura(l.facebook))}" target="_blank" rel="noopener">${esc(l.facebook.replace(/^https?:\/\/(www\.|m\.)?facebook\.com\//,""))}</a></dd>`:""}
+        ${l.linkedin?`<dt>LinkedIn</dt><dd><a href="${esc(urlSegura(l.linkedin))}" target="_blank" rel="noopener">abrir perfil</a></dd>`:""}
         <dt>Endereço</dt><dd>${esc(l.endereco||"—")}</dd>
         <dt>Bairro</dt><dd>${esc(l.bairro||"—")}</dd>
         <dt>Cidade</dt><dd>${esc([l.cidade,l.uf].filter(Boolean).join(" - ")||"—")}${l.cep?` · CEP ${esc(l.cep)}`:""}</dd>

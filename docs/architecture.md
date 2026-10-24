@@ -14,7 +14,9 @@
 | Arquivo | Responsabilidade |
 |---|---|
 | `scripts/iniciar.py` (+ `Prospeccao.cmd`) | liga motor, Docker/WAHA e painel; não duplica serviço já no ar |
-| `painel/server.py` | carga dos dados, handler HTTP (login, buscas, leads, config, estáticos) e `main` |
+| `painel/server.py` | carga dos dados, handler HTTP (buscas, leads, config, estáticos) e `main` |
+| `painel/seguranca_http.py` | Hosts/origens permitidos, limite de corpo, bloqueio de login, cabeçalhos de segurança |
+| `painel/rotas_auth.py` | criar senha (só local), entrar, sair |
 | `painel/rotas_atendimento.py` | rotas de WhatsApp, conversas, agente, campanhas e agenda |
 | `painel/estado.py` | config padrão, estado em memória, gravação atômica em disco, segredos, senha, `registrar` |
 | `painel/normaliza.py` | municípios IBGE, geocodificação OSM, telefone/WhatsApp BR, lead a partir da linha do motor, mescla na base |
@@ -40,7 +42,10 @@ painel ──HTTP──▶ sites das empresas (enriquecimento) e nominatim.opens
 ```
 
 - Toda rota `/api/*` exige login (cookie `HttpOnly`, `SameSite=Strict`) ou o token local, exceto `/api/auth/*` e o webhook (token próprio). `/static/` é público e só serve `.css/.js/.svg/.png` de dentro de `painel/static/`.
-- Criar a senha só é aceito de 127.0.0.1/::1.
+- Criar a senha só é aceito de 127.0.0.1/::1 com Host local (não pelo nome do Tailscale).
+- Host fora da lista (localhost, 127.0.0.1, ::1, `*.ts.net`; `host.docker.internal` só no webhook) recebe 403 (DNS rebinding). Pedido do navegador que muda algo precisa de `Origin` igual ao Host e JSON (CSRF de outra porta do localhost). Corpo acima de 1 MB: 413. CSP `script-src 'self'`.
+- Enriquecimento só visita sites em IP público, portas 80/443, conferindo cada redirecionamento (SSRF).
+- Opt-out vale pelo número em qualquer registro; a IA não recebe as anotações privadas, reserva no máximo 1 horário futuro por lead e responde no máximo 30 vezes por dia por conversa. O MCP não liga o disparo automático.
 - Mensagem só sai para número que bate com um lead (DDD + 8 dígitos, ignorando 55 e o 9º dígito).
 
 ## Dados (`painel/dados/`)

@@ -83,8 +83,8 @@ def contexto_lead(l):
         ("Empresa", l.get("nome")), ("Categoria", l.get("categoria")), ("Cidade", f"{l.get('bairro') or ''} {l.get('cidade') or ''} {l.get('uf') or ''}".strip()),
         ("Tem site", "sim" if tem_site(l) else "não"), ("Tem Instagram", "sim" if tem_instagram(l) else "não encontrado"),
         ("Nota no Google", l.get("nota") or "—"),
-        ("Avaliações", l.get("avaliacoes") or 0), ("Etapa do funil", NOME_STATUS.get(l.get("status"), l.get("status"))),
-        ("Anotações", l.get("obs") or "—")))
+        ("Avaliações", l.get("avaliacoes") or 0), ("Etapa do funil", NOME_STATUS.get(l.get("status"), l.get("status")))))
+    # sem as anotações privadas (obs): o lead poderia pedir para a IA repeti-las
 
 
 def prompt_conversa(l, c, extra=""):
@@ -92,7 +92,7 @@ def prompt_conversa(l, c, extra=""):
     hist = "\n".join(f"[{datetime.fromtimestamp(m['t'], BR).strftime('%d/%m %H:%M')}] "
                      f"{'LEAD' if m['de'] == 'lead' else 'NÓS'}: {m['txt']}" for m in c["msgs"][-30:])
     return (f"BASE DE CONHECIMENTO:\n{ag.get('base') or '(vazia)'}\n\nINSTRUÇÕES DE ABORDAGEM:\n{ag.get('instrucoes') or '(nenhuma)'}\n\n"
-            f"DADOS DO LEAD:\n{contexto_lead(l)}\n\n{estrategia_lead(l)}AGORA:{datetime.now(BR).strftime('%A %d/%m/%Y %H:%M')} (Brasília)\n"
+            f"DADOS DO LEAD:\n{contexto_lead(l)}\n\n{estrategia_lead(l)}AGORA: {datetime.now(BR).strftime('%A %d/%m/%Y %H:%M')} (Brasília)\n"
             f"HORÁRIOS LIVRES (use o formato exato): {', '.join(proximos_slots()) or 'nenhum — ofereça retornar depois'}\n\n"
             f"CONVERSA ATÉ AGORA:\n{hist or '(nenhuma)'}\n{extra}")
 
@@ -109,6 +109,9 @@ def ia_decide(l, c, extra=""):
     return _json_de(chama_claude(SISTEMA_IA, prompt_conversa(l, c, extra)))
 
 
+LIMITE_IA_DIA = 30
+
+
 def ia_responder(numero):
     """Gera a resposta da IA para uma conversa e executa a ação (agendar só confirma após reservar)."""
     with lock:
@@ -118,6 +121,14 @@ def ia_responder(numero):
         return
     if not c["msgs"] or c["msgs"][-1]["de"] != "lead":
         return
+    hoje = datetime.now(BR).strftime("%Y-%m-%d")
+    with lock:  # teto diário de respostas da IA por conversa (custo e abuso)
+        if c.get("ia_dia") != hoje:
+            c["ia_dia"], c["ia_n"] = hoje, 0
+        if c["ia_n"] >= LIMITE_IA_DIA:
+            c["ia"], c["ia_motivo"] = False, f"Limite de {LIMITE_IA_DIA} respostas da IA hoje"
+            return
+        c["ia_n"] += 1
     d = ia_decide(l, c)
     acao, msg = d.get("acao") or "nada", (d.get("mensagem") or "").strip()
     if d.get("resumo"):

@@ -12,6 +12,8 @@ function fRel(t){ if(!t) return ""; const s=Date.now()/1000-t;
   if(s<60) return "agora"; if(s<3600) return `há ${Math.floor(s/60)} min`; if(s<86400) return `há ${Math.floor(s/3600)} h`;
   if(s<86400*7) return `há ${Math.floor(s/86400)} dia${s>=172800?"s":""}`; return fData(t).slice(0,8); }
 function fTel(d){ d=String(d||"").replace(/^55/,""); return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:d; }
+// link vindo de dado de terceiro: só http/https (bloqueia javascript:, data: etc.)
+const urlSegura = u => /^https?:\/\//i.test(String(u||"").trim()) ? String(u).trim() : (/^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(String(u||"").trim()) ? "http://"+String(u).trim() : "");
 function dominio(u){ try{ return new URL(u.startsWith("http")?u:"http://"+u).hostname.replace(/^www\./,""); }catch{ return u; } }
 const ls = { get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch{return d} }, set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} } };
 function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("on"),2400); }
