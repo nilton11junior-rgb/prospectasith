@@ -1,0 +1,5 @@
+# MCP do Prospecta para o Codex (vale quando este projeto é confiável no Codex).
+# Autenticação, modelo e permissões da máquina ficam fora daqui. O painel precisa estar ligado.
+[mcp_servers.prospecta]
+command = "uv"
+args = ["run", "--no-project", "--python", "3.12", "python", "-X", "utf8", "painel/mcp_server.py"]
