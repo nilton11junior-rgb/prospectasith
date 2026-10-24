@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(HERE, os.pardir, "scripts"))
 import scrape as kit  # noqa: E402  (reaproveita req, grid, dedupe, extração de email/redes)
 
 PORT = int(os.environ.get("PAINEL_PORT", "8090"))
-DADOS = os.path.join(HERE, "dados")
+DADOS = os.environ.get("PROSPECTA_DADOS") or os.path.join(HERE, "dados")  # testes usam uma pasta temporária
 DIR_BUSCAS = os.path.join(DADOS, "buscas")
 ARQ_LEADS = os.path.join(DADOS, "leads.json")
 ARQ_CONFIG = os.path.join(DADOS, "config.json")

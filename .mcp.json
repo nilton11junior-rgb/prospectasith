@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "prospecta": {
-      "command": "C:/Users/nilto/AppData/Roaming/uv/python/cpython-3.12-windows-x86_64-none/python.exe",
-      "args": ["-X", "utf8", "painel/mcp_server.py"]
+      "command": "uv",
+      "args": ["run", "--no-project", "--python", "3.12", "python", "-X", "utf8", "painel/mcp_server.py"]
     }
   }
 }
