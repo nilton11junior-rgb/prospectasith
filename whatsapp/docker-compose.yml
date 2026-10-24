@@ -1,0 +1,31 @@
+# WhatsApp interno do Prospecta: WAHA (devlikeapro/waha), imagem oficial, motor GOWS.
+# Sobe pelo scripts/iniciar.py, que passa WAHA_API_KEY (painel/dados/waha_key).
+# A porta fica só em 127.0.0.1: a API controla seu WhatsApp, nunca exponha na rede.
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: prospecta-waha
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      WAHA_API_KEY: ${WAHA_API_KEY:?defina WAHA_API_KEY}
+      WHATSAPP_DEFAULT_ENGINE: GOWS
+      WHATSAPP_RESTART_ALL_SESSIONS: "True"
+      WAHA_PRINT_QR: "False"
+      WAHA_DASHBOARD_ENABLED: "False"
+      WHATSAPP_SWAGGER_ENABLED: "False"
+      WAHA_SESSION_CONFIG_IGNORE_GROUPS: "True"
+      WAHA_SESSION_CONFIG_IGNORE_STATUS: "True"
+      WAHA_SESSION_CONFIG_IGNORE_CHANNELS: "True"
+      WAHA_SESSION_CONFIG_IGNORE_BROADCAST: "True"
+      TZ: America/Sao_Paulo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # webhook volta para o painel no Windows
+    volumes:
+      - waha_sessoes:/app/.sessions   # sessão pareada: sobrevive a reinícios
+      - waha_midia:/app/.media
+
+volumes:
+  waha_sessoes:
+  waha_midia:
