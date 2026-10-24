@@ -12,7 +12,12 @@ TMP = tempfile.mkdtemp(prefix="prospecta-teste-")
 os.environ["PROSPECTA_DADOS"] = TMP
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import server as app  # noqa: E402
+import types  # noqa: E402
+import agenda, campanhas, disparo, estado, normaliza, server, whatsapp  # noqa: E402
+
+# um só namespace com os módulos do painel: os testes não dependem de onde cada função mora
+app = types.SimpleNamespace(**{k: v for m in (estado, normaliza, campanhas, agenda, whatsapp, disparo, server)
+                               for k, v in vars(m).items() if not k.startswith("__")})
 
 
 def lead(**kw):
