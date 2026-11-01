@@ -1,7 +1,7 @@
 // Prospecta: Campanhas: segmentos, roteiros e follow-up. Scripts clássicos: compartilham o escopo global, a ordem importa.
 // ═════════════ CAMPANHAS (segmentos + roteiros + follow-up) ═════════════
 let CP = null, segAberto = null;
-const VARS = ["saudacao","nome","cidade","bairro","categoria","elogio","nota","avaliacoes"];
+const VARS = ["gancho","saudacao","nome","cidade","bairro","categoria","elogio","nota","avaliacoes"];
 VIEWS.campanhas = async () => {
   crumbs([["Atendimento"],["Campanhas"]]);
   try{ CP = await api("/api/campanhas"); }catch(e){ return toast(e.message); }
@@ -32,7 +32,7 @@ VIEWS.campanhas = async () => {
             <div style="display:flex;flex-direction:column;gap:4px"><button class="btn sm" data-prev="${j}">Prévia</button><button class="btn sm danger" data-del="${j}" ${s.variantes.length<2?"disabled":""}>${ic("trash")}</button></div></div>`).join("")}</div>
           <button class="btn sm" id="sgAdd">${ic("plus")}Nova variação</button>
           <div class="chips" style="margin-top:12px">${VARS.map(v=>`<span class="chip" data-var="${v}">+ {${v}}</span>`).join("")}</div>
-          <div class="hint">{saudacao} = Bom dia/Boa tarde conforme a hora. {elogio} vira “com ótimas avaliações” (nota 4,6+) ou “com boas avaliações” (4,2+) e some se a nota for menor. Clique numa variável para inserir no último campo usado.</div>
+          <div class="hint">{saudacao} = Bom dia/Boa tarde conforme a hora. {gancho} é a 1ª frase do elogio (“Vi que a X tem ótimas avaliações no Google.”; com nota menor fica neutra: “Vi a X aqui no Google.”). {elogio} é só o trecho “com ótimas/boas avaliações”. Clique numa variável para inserir no último campo usado.</div>
           <label class="lbl">Prévia com uma empresa real deste segmento</label>
           <div class="wa-prev"><div class="bubble" id="sgPrev">Clique em “Prévia”.</div></div><div class="xs muted" id="sgPrevL" style="margin-top:4px"></div>`}
         </div></div>

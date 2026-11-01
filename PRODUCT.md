@@ -35,7 +35,7 @@ Multiusuário, nuvem, cobrança, envio em massa sem limite, grupos de WhatsApp, 
 - Python só com biblioteca padrão e JS sem framework: roda em qualquer máquina sem instalar dependências.
 - WAHA (motor GOWS) no Docker Desktop em vez de biblioteca embutida: escolha do usuário; build nativo no Windows travou.
 - IA pela assinatura do Claude Code (sem chave) por padrão; chave da Anthropic opcional para resposta em segundos.
-- Primeira mensagem sem link e com variações: reduz risco de bloqueio do número.
+- Mensagens seguem `docs/estrategia-vendas.md`: 1ª mensagem = elogio + pergunta (sem link, preço nem pitch), conversa com SPIN, Sim ou Sim para a chamada, preço só na chamada, follow-up nos dias 2, 4 e 7. Sem link e com variações também reduz o risco de bloqueio do número.
 
 ## Suposições
 

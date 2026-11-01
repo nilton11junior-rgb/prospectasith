@@ -15,7 +15,7 @@ Dados (tudo local, em painel/dados/):
 import hmac, json, os, re, socket, sys, threading, time
 import urllib.error, urllib.parse, urllib.request, uuid, webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from roteiros import CAMPANHAS_PADRAO, FOLLOWUP_PADRAO
+from roteiros import CAMPANHAS_PADRAO, FOLLOWUP_PADRAO, ROTEIROS_VERSAO
 from estado import API_TOKEN, ARQ_AGENDA, ARQ_CONFIG, ARQ_CONVERSAS, ARQ_LEADS, ARQ_SESSOES, CONFIG_PADRAO, DADOS, DIR_BUSCAS, HERE, NOME_STATUS, PORT, STATUS_LEAD, TAMANHOS, _le, agenda_dados, buscas, config, conversas, fila, fila_cond, leads, lock, registrar, salvar_busca, salvar_config, salvar_leads, sessoes
 from normaliza import mesclar_leads, municipios
 from campanhas import SEGMENTOS
@@ -31,6 +31,20 @@ import rotas_auth
 from seguranca_http import (CABECALHOS_SEGURANCA, LIMITE_CORPO, host_permitido, nome_host, origem_permitida)
 
 
+def migra_roteiros():
+    """Textos padrão novos (ROTEIROS_VERSAO): troca estratégia e variações, mantém o que você ligou/desligou e
+    guarda os textos anteriores em config["roteiros_anteriores"], para nada se perder."""
+    config["roteiros_anteriores"] = {"versao": config.get("roteiros_versao", 0),
+                                     "campanhas": json.loads(json.dumps(config["campanhas"])),
+                                     "followup": json.loads(json.dumps(config["followup"]))}
+    for sid, padrao in CAMPANHAS_PADRAO.items():
+        config["campanhas"][sid].update(estrategia=padrao["estrategia"], variantes=list(padrao["variantes"]))
+    ativo = config["followup"].get("ativo", True)
+    config["followup"] = {**json.loads(json.dumps(FOLLOWUP_PADRAO)), "ativo": ativo}
+    config["roteiros_versao"] = ROTEIROS_VERSAO
+    salvar_config()
+
+
 def carregar():
     leads.update(_le(ARQ_LEADS, {}))
     config.update(_le(ARQ_CONFIG, None) or json.loads(json.dumps(CONFIG_PADRAO)))
@@ -39,6 +53,8 @@ def carregar():
     camp = config.get("campanhas") or {}
     config["campanhas"] = {sid: {**json.loads(json.dumps(CAMPANHAS_PADRAO[sid])), **(camp.get(sid) or {})} for sid in SEGMENTOS}
     config["followup"] = {**json.loads(json.dumps(FOLLOWUP_PADRAO)), **(config.get("followup") or {})}
+    if config.get("roteiros_versao", 0) < ROTEIROS_VERSAO:
+        migra_roteiros()
     conversas.update(_le(ARQ_CONVERSAS, {}))
     agenda_dados.update(_le(ARQ_AGENDA, {"reservas": []}))
     for nome in os.listdir(DIR_BUSCAS):

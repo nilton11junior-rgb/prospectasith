@@ -25,7 +25,7 @@
 | 9 documentos do manifesto | feito | projeto | `README.md`, `PRODUCT.md`, `AGENTS.md`, `CLAUDE.md`, `docs/architecture.md`, `design.md`, `onboarding.md`, `quality.md`, `setup.md`; README do kit preservado em `KIT-README.md` |
 | AGENTS.md / CLAUDE.md | feito | projeto | bloco Caveman preservado; `CLAUDE.md` importa `@AGENTS.md` + só o específico do Claude |
 | Comandos canônicos + verificação | feito | projeto | `scripts/verificar.py` OK; autoteste com arquivos quebrados detectou Python e JS |
-| Testes do painel | feito | projeto | 49 testes em `painel/test_painel.py`, `test_seguranca.py` e `test_lixeira.py` (inclui regressões de segurança e a lixeira) |
+| Testes do painel | feito | projeto | 57 testes em `painel/test_painel.py`, `test_seguranca.py`, `test_lixeira.py` e `test_estrategia.py` (inclui regressões de segurança, a lixeira e as regras da estratégia de mensagens) |
 | Refatoração por tamanho | feito | projeto | maior arquivo do painel: `server.py` 385 linhas; 11 telas renderizadas no navegador |
 | Codex (AGENTS.md + MCP) | configurado, não executado | projeto | `.codex/config.toml`; o Codex só carrega config de projeto confiável — não testado numa sessão do Codex |
 | MCP `prospecta` no Claude | validado | projeto | `initialize`, `tools/list` (15 ferramentas) e chamadas via stdio |

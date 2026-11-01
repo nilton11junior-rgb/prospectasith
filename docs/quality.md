@@ -16,7 +16,7 @@ Lint e checagem de tipos: indisponíveis (sem ruff/mypy no projeto, por ser só 
 
 ## Testes
 
-- Ficam junto do código, só biblioteca padrão: `painel/test_painel.py` (núcleo), `test_seguranca.py`, `test_lixeira.py` (apoio em `testes_comum.py`) e `scripts/test_scrape.py`.
+- Ficam junto do código, só biblioteca padrão: `painel/test_painel.py` (núcleo), `test_seguranca.py`, `test_lixeira.py`, `test_estrategia.py` (apoio em `testes_comum.py`) e `scripts/test_scrape.py`.
 - Rodam com `PROSPECTA_DADOS` numa pasta temporária: nunca tocam em `painel/dados/`, WhatsApp, Google ou IA.
 - Bug corrigido ganha teste que reproduz o problema. Funções que falam com serviços externos (WAHA, Claude, motor) são testadas pelo comportamento ao redor, sem simular sucesso da integração.
 - Telas: depois de mexer em `painel/static/js`, abra o painel e confira as telas afetadas (o verificar só garante a sintaxe).

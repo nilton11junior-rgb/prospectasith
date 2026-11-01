@@ -69,7 +69,12 @@ def preenche(texto, l):
     elogio = (" com ótimas avaliações" if nota >= 4.6 and aval >= 15 else
               " com boas avaliações" if nota >= 4.2 and aval >= 5 else "")
     cidade = l.get("cidade") or "sua cidade"
-    out = (texto.replace("{nome}", nome_curto(l.get("nome"))).replace("{cidade}", cidade).replace("{bairro}", l.get("bairro") or cidade)
+    nome = nome_curto(l.get("nome"))
+    # {gancho}: 1ª frase do elogio; cita as avaliações só quando a nota sustenta (senão fica neutro)
+    gancho = (f"Vi que a {nome} tem ótimas avaliações no Google." if nota >= 4.6 and aval >= 15 else
+              f"Vi que a {nome} tem boas avaliações no Google." if nota >= 4.2 and aval >= 5 else
+              f"Vi a {nome} aqui no Google.")
+    out = (texto.replace("{gancho}", gancho).replace("{nome}", nome).replace("{cidade}", cidade).replace("{bairro}", l.get("bairro") or cidade)
            .replace("{categoria}", (l.get("categoria") or "empresas").lower()).replace("{nota}", str(nota).replace(".", ","))
            .replace("{avaliacoes}", str(aval)).replace("{elogio}", elogio).replace("{saudacao}", saudacao()))
     return re.sub(r"[ \t]+", " ", out).strip()

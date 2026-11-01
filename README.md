@@ -24,6 +24,7 @@ python -X utf8 scripts/verificar.py
 | [docs/onboarding.md](docs/onboarding.md) | preparar a máquina e o primeiro uso |
 | [docs/architecture.md](docs/architecture.md) | mapa do código, fronteiras e dados |
 | [docs/design.md](docs/design.md) | interface do painel |
+| [docs/estrategia-vendas.md](docs/estrategia-vendas.md) | método de vendas que gera as mensagens e o comportamento da IA |
 | [docs/quality.md](docs/quality.md) | checagens, testes, revisão de segurança e do harness |
 | [docs/setup.md](docs/setup.md) | registro do setup do Vibe Coding Toolkit e pendências |
 | [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) | instruções para agentes (Codex, Claude Code e outros) |
