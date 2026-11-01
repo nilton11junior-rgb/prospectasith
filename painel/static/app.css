@@ -37,12 +37,24 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 .logo svg{width:18px;height:18px;stroke:#fff}
 .brand b{font-size:18px;font-weight:500;letter-spacing:0;color:var(--side-ink-hi)}
 .brand small{display:block;font-size:11px;color:var(--side-sec);margin-top:-2px}
-.nav-sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--side-sec);padding:14px 12px 6px 24px;font-weight:500}
-.nav a{display:flex;align-items:center;gap:14px;padding:9px 16px 9px 24px;border-radius:0 999px 999px 0;color:var(--side-ink);font-weight:500;font-size:13.5px;text-decoration:none;margin-bottom:2px;position:relative}
-.nav a:hover{background:var(--side-2);color:var(--side-ink-hi)}
+.nav a,.nav-h{display:flex;align-items:center;gap:14px;padding:9px 16px 9px 24px;border-radius:0 999px 999px 0;color:var(--side-ink);font-weight:500;font-size:13.5px;text-decoration:none;margin-bottom:2px;position:relative}
+.nav a:hover,.nav-h:hover{background:var(--side-2);color:var(--side-ink-hi)}
 .nav a.on{background:var(--side-act);color:var(--side-act-ink);font-weight:500}
-
+.nav-h{width:100%;border:0;background:none;cursor:pointer;text-align:left;font-family:inherit;line-height:1.5}
+.nav-h:focus-visible,.nav a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.nav-grp.atual>.nav-h{color:var(--side-act-ink)}
+.nav-fim{margin-left:auto;display:flex;align-items:center;gap:8px}
+.nav-h .chev{width:16px;height:16px;transition:transform .18s}
+.nav-grp.open>.nav-h .chev{transform:rotate(180deg)}
+.nav-grp.open .badge.resumo{display:none}        /* o aviso do grupo só aparece com ele fechado */
+.nav-sub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .18s ease}
+.nav-grp.open>.nav-sub{grid-template-rows:1fr}
+.nav-in{overflow:hidden;min-height:0}
+.nav-sub a{padding-left:56px}
+@media (prefers-reduced-motion:reduce){.nav-sub,.nav-h .chev{transition:none}}
 .nav .badge{margin-left:auto;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px}
+.nav-fim .badge{margin-left:0}
+.nav .badge.mudo{background:var(--side-2);color:var(--muted)}
 .nav .badge.pulse{animation:pulse 1.6s infinite}
 @keyframes pulse{50%{opacity:.45}}
 .side-foot{margin:auto 0 0 12px;padding:12px;border-radius:12px;background:var(--side-2);font-size:12.5px}

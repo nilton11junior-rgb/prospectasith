@@ -52,6 +52,7 @@ const I = {
   trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
   check:'<path d="m5 12 5 5L20 7"/>',
   refresh:'<path d="M20 11a8 8 0 0 0-14.8-4M4 4v4h4M4 13a8 8 0 0 0 14.8 4M20 20v-4h-4"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>',
   trash:'<path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/>',
   cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   send:'<path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/>',
@@ -78,22 +79,49 @@ function upsertLead(l){ const p = {...l, n_hist:(l.historico||[]).length}; delet
   S.map[l.id] = p; const i = S.leads.findIndex(x=>x.id===l.id); if(i>=0) S.leads[i]=p; else S.leads.push(p); }
 
 // ═════════════ navegação ═════════════
+// menu: "Início" solto e grupos que abrem/fecham. Item = [rota, rótulo, ícone]. Cada área nova entra como um grupo aqui.
 const NAV = [
-  ["sec","Visão geral"], ["inicio","Início","home"],
-  ["sec","Prospecção"], ["nova","Nova busca","plus"], ["buscas","Buscas","hist"], ["leads","Leads","users"], ["funil","Funil de vendas","kanban"], ["lixeira","Lixeira","trash"],
-  ["sec","Atendimento"], ["whatsapp","WhatsApp interno","wa"], ["campanhas","Campanhas","send"], ["agente","Agente IA","spark"], ["agenda","Agenda","cal"],
-  ["sec","Ajustes"], ["mensagens","Mensagens","msg"], ["config","Configurações","gear"],
+  {solto:["inicio","Início","home"]},
+  {id:"prospeccao", nome:"Prospecção", ic:"search", itens:[["nova","Nova busca","plus"],["buscas","Buscas","hist"],["leads","Leads","users"],["funil","Funil de vendas","kanban"],["lixeira","Lixeira","trash"]]},
+  {id:"atendimento", nome:"Atendimento", ic:"msg", itens:[["whatsapp","WhatsApp interno","wa"],["campanhas","Campanhas","send"],["agente","Agente IA","spark"],["agenda","Agenda","cal"]]},
+  {id:"ajustes", nome:"Ajustes", ic:"gear", itens:[["mensagens","Mensagens","msg"],["config","Configurações","gear"]]},
 ];
+const NAV_ABERTOS = ls.get("navAbertos", {});   // grupo -> true/false escolhido por você; o grupo da tela atual sempre abre
 function rota(){ const h = location.hash.replace(/^#\/?/,"") || "inicio"; const [v, ...r] = h.split("/"); return {v, arg:r.join("/")}; }
-function renderNav(){
-  const {v} = rota(), ativas = S.buscas.filter(b=>b.estado==="rodando"||b.estado==="na_fila").length;
-  $("#nav").innerHTML = NAV.map(n => n[0]==="sec" ? `<div class="nav-sec">${n[1]}</div>` :
-    `<a href="#/${n[0]}" class="${v===n[0]?"on":""}">${ic(n[2])}${n[1]}
-      ${n[0]==="buscas"&&ativas?`<span class="badge pulse">${ativas}</span>`:""}
-      ${n[0]==="lixeira"&&S.nLixeira?`<span class="badge" style="background:var(--side-2);color:var(--muted)">${S.nLixeira}</span>`:""}
-      ${n[0]==="whatsapp"&&S.naoLidas?`<span class="badge">${S.naoLidas}</span>`:""}
-      ${n[0]==="leads"&&S.leads.length?`<span class="badge" style="background:var(--side-2);color:var(--muted)">${fN(S.leads.length)}</span>`:""}</a>`).join("");
+// avisos por item: n = número, aviso = conta no resumo do grupo fechado (leads é só informação)
+function avisoDe(r){
+  if(r==="buscas"){ const n = S.buscas.filter(b=>b.estado==="rodando"||b.estado==="na_fila").length; return n && {n, cls:"pulse", aviso:true}; }
+  if(r==="lixeira") return S.nLixeira && {n:S.nLixeira, cls:"mudo", aviso:true};
+  if(r==="whatsapp") return S.naoLidas && {n:S.naoLidas, cls:"", aviso:true};
+  if(r==="leads") return S.leads.length && {n:fN(S.leads.length), cls:"mudo", aviso:false};
+  return 0;
 }
+const badgeHtml = a => a ? `<span class="badge ${a.cls}">${a.n}</span>` : "";
+function renderNav(){
+  const {v} = rota();
+  const link = ([r,nome,ico]) => `<a href="#/${r}" class="${v===r?"on":""}" ${v===r?'aria-current="page"':""}>${ic(ico)}${nome}${badgeHtml(avisoDe(r))}</a>`;
+  const html = NAV.map(g => {
+    if(g.solto) return link(g.solto);
+    const atual = g.itens.some(i=>i[0]===v), aberto = atual || NAV_ABERTOS[g.id]===true;
+    const total = g.itens.reduce((t,i)=>{ const a = avisoDe(i[0]); return t + (a && a.aviso ? Number(a.n)||0 : 0); }, 0);
+    return `<div class="nav-grp ${aberto?"open":""} ${atual?"atual":""}" data-g="${g.id}">
+      <button type="button" class="nav-h" aria-expanded="${aberto}" aria-controls="sub-${g.id}">${ic(g.ic)}${g.nome}
+        <span class="nav-fim">${total?`<span class="badge resumo">${total}</span>`:""}${ic("chev","i chev")}</span></button>
+      <div class="nav-sub" id="sub-${g.id}"><div class="nav-in" ${aberto?"":"inert"}>${g.itens.map(link).join("")}</div></div></div>`;
+  }).join("");
+  if(html !== renderNav.ult){ $("#nav").innerHTML = html; renderNav.ult = html; }   // sem refazer à toa: preserva foco e animação
+}
+// abrir/fechar: mexe no elemento existente (a animação roda) e guarda a escolha
+$("#nav").addEventListener("click", e => {
+  const h = e.target.closest(".nav-h"); if(!h) return;
+  const g = h.parentElement;
+  if(g.classList.contains("atual")) return;   // o grupo da tela atual fica sempre aberto
+  const abre = !g.classList.contains("open");
+  g.classList.toggle("open", abre); h.setAttribute("aria-expanded", abre);
+  $(".nav-in", g).toggleAttribute("inert", !abre);
+  NAV_ABERTOS[g.dataset.g] = abre; ls.set("navAbertos", NAV_ABERTOS);
+  renderNav.ult = null;   // o próximo desenho reflete a escolha
+});
 function crumbs(parts){ $("#crumbs").innerHTML = parts.map((p,i)=> i<parts.length-1 ? (p[1]?`<a href="${p[1]}">${esc(p[0])}</a>`:`<span>${esc(p[0])}</span>`)+`<span>/</span>` : `<b>${esc(p[0])}</b>`).join(""); }
 const VIEWS = {};
 function render(){

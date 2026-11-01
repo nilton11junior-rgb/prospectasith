@@ -10,6 +10,7 @@ Ferramenta de trabalho diário: densa, legível e rápida. Visual inspirado no M
 - Componentes: `.card`, `.btn` (`pri`, `wa`, `sm`, `danger`, `ghost`), `.pill` (status `s-*`, estado de busca `e-*`), `.chip`, `.switch`, `.note` (`info`, `err`, `ok`), `.in` (campos), tabela de leads, quadro do funil (`.kb`), ficha lateral (`.drawer`), bolhas de WhatsApp (`.wa-prev`, `.bubble`, `.msg`), horários (`.slot`).
 - Ícones SVG inline no objeto `I` (`static/js/base.js`).
 - Navegação por hash (`#/inicio`, `#/leads`, `#/whatsapp/<número>` …); cada tela é uma função em `VIEWS`.
+- Menu lateral em grupos que abrem e fecham (`NAV` em `static/js/base.js`): "Início" solto e os grupos Prospecção, Atendimento e Ajustes. O grupo da tela atual fica sempre aberto; os outros lembram a escolha no navegador (`localStorage`). Grupo fechado soma os avisos dos itens (mensagens não lidas, buscas rodando, lixeira). Cada área nova entra como um grupo em `NAV`. Cada grupo é um botão com `aria-expanded`; o conteúdo fechado fica `inert`; `prefers-reduced-motion` desliga a animação.
 
 ## Interação e acessibilidade
 
