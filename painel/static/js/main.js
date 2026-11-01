@@ -30,7 +30,7 @@ async function tick(){
 }
 (async () => {
   try{ const a = await (await fetch("/api/auth/estado")).json(); if(!a.logado) return mostraLogin(); }catch{}
-  await Promise.all([carregaBuscas(), carregaLeads(), carregaConversas(), status(), api("/api/config").then(c=>S.config=c).catch(()=>{})]);
+  await Promise.all([carregaBuscas(), carregaLeads(), carregaConversas(), carregaLixeira(), status(), api("/api/config").then(c=>S.config=c).catch(()=>{})]);
   render();
   setInterval(tick, 3000);
   setInterval(status, 15000);

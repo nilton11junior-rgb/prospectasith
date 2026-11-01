@@ -145,7 +145,7 @@ VIEWS.buscas = arg => arg ? viewBusca(arg) : viewBuscas();
 function viewBuscas(){
   crumbs([["Prospecção","#/buscas"],["Buscas"]]);
   const bs = S.buscas;
-  $("#page").innerHTML = `<div class="ph"><div><h1>Buscas</h1><p>Histórico de todas as buscas, da mais recente para a mais antiga.</p></div><div class="acts"><a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>
+  $("#page").innerHTML = `<div class="ph"><div><h1>Buscas</h1><p>Histórico de todas as buscas, da mais recente para a mais antiga.</p></div><div class="acts">${S.nLixeira?`<a class="btn" href="#/lixeira">${ic("trash")}Lixeira (${S.nLixeira})</a>`:""}<a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>
   <div class="card">${!bs.length?`<div class="empty" style="padding:60px 20px"><div class="ic">${ic("hist")}</div><b>Nenhuma busca ainda</b>Comece pela primeira.<div style="margin-top:14px"><a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>`:
   `<div class="twrap"><table class="t"><thead><tr><th>Busca</th><th>Local</th><th>Tamanho</th><th>Quando</th><th>Situação</th><th style="text-align:right">Empresas</th><th style="text-align:right">WhatsApp</th><th style="text-align:right">E-mail</th></tr></thead><tbody>
   ${bs.map(b=>`<tr data-b="${b.id}"><td><div class="lead-n">${esc(b.parametros.nichos.join(", "))}</div>${b.novos!=null&&b.estado==="concluida"?`<div class="lead-c">${fN(b.novos)} novos na base</div>`:""}</td>
@@ -168,7 +168,7 @@ function viewBusca(id){
       <div class="hint" style="margin-top:10px">Pode sair desta tela: a busca continua rodando e os leads aparecem sozinhos quando terminar.</div></div></div>`:"";
   if(mesma && rodando && $("#prog")){ $("#prog").outerHTML = progresso; return; }
   $("#page").innerHTML = `<div class="ph fade"><div><div class="row" style="margin-bottom:6px"><span class="pill e-${b.estado}">${ESTADO[b.estado]}</span><span class="muted sm">${TAM[b.parametros.tamanho][0]} · ${fData(b.criado_em)}</span></div><h1>${esc(b.parametros.nichos.join(", "))}</h1><p class="row">${ic("pin")} ${esc(localB(b))}</p></div>
-    <div class="acts">${b.estado==="concluida"?`<button class="btn" id="bExpB">${ic("down")}Exportar</button>`:""}${rodando?`<button class="btn" id="bCanc">${ic("x")}Cancelar</button>`:`<button class="btn" id="bRep">${ic("refresh")}Rodar de novo</button>`}<button class="btn danger" id="bDel">${ic("trash")}Excluir</button></div></div>
+    <div class="acts">${b.estado==="concluida"?`<button class="btn" id="bExpB">${ic("down")}Exportar</button>`:""}${rodando?`<button class="btn" id="bCanc">${ic("x")}Cancelar</button>`:`<button class="btn" id="bRep">${ic("refresh")}Rodar de novo</button>`}<select class="in" id="bMot" title="Por que está indo para a lixeira?" style="width:auto"><option>Resultado ruim</option><option>Nicho errado</option><option>Cidade errada</option><option>Duplicada</option><option>Outro</option></select><button class="btn danger" id="bDel" ${rodando?"disabled title=\"Cancele a busca antes\"":""}>${ic("trash")}Lixeira</button></div></div>
     ${progresso}
     ${b.estado==="erro"?`<div class="note err fade" style="margin-bottom:16px">${ic("flag")}<span><b>Deu erro:</b> ${esc(b.etapa)}</span></div>`:""}
     ${(b.avisos||[]).map(a=>`<div class="note" style="margin-bottom:10px">${esc(a)}</div>`).join("")}
@@ -180,9 +180,37 @@ function viewBusca(id){
       <div class="card fade" id="tbl"></div>`:""}`;
   $("#bCanc") && ($("#bCanc").onclick = async()=>{ await api(`/api/buscas/${id}/cancelar`,{method:"POST"}); await carregaBuscas(); render(); });
   $("#bRep") && ($("#bRep").onclick = async()=>{ if(!confirma("rep"+id,"Rodar esta busca de novo? Leads novos entram na base; status e anotações dos atuais são mantidos.")) return; await api(`/api/buscas/${id}/repetir`,{method:"POST"}); await carregaBuscas(); render(); });
-  $("#bDel").onclick = async()=>{ if(!confirma("del"+id,"Excluir esta busca? Leads que você já trabalhou (status ou anotação) continuam na base.")) return; await api(`/api/buscas/${id}`,{method:"DELETE"}); await Promise.all([carregaBuscas(),carregaLeads()]); toast("Busca excluída"); location.hash="#/buscas"; };
+  $("#bDel").onclick = async()=>{ if(!confirma("del"+id,"Mandar esta busca para a lixeira? Leads novos que vieram só dela saem da base; os que você já trabalhou ficam. Dá para restaurar por 30 dias.")) return;
+    try{ await api(`/api/buscas/${id}/lixeira`,{method:"POST",body:{motivo:$("#bMot").value}}); }catch(e){ return toast(e.message); }
+    await Promise.all([carregaBuscas(),carregaLeads(),carregaLixeira()]); toast("Busca na lixeira"); location.hash="#/buscas"; };
   if($("#tbl")) api(`/api/buscas/${id}`).then(d => { const ids=new Set(d.lead_ids); const fonte = () => S.leads.filter(l=>ids.has(l.id));
     $("#bExpB") && ($("#bExpB").onclick = () => exportaCsv(fonte(), semAc(b.parametros.nichos[0]).replace(/\W+/g,"-")+"_"+semAc(b.parametros.cidade).replace(/\W+/g,"-")));
     tabelaLeads($("#tbl"), fonte, "b_"+id); });
 }
 
+
+
+// ═════════════ LIXEIRA (buscas descartadas) ═════════════
+async function carregaLixeira(){ try{ S.nLixeira = (await api("/api/lixeira")).length; }catch{} }
+VIEWS.lixeira = async () => {
+  crumbs([["Prospecção","#/buscas"],["Lixeira"]]);
+  let ls = []; try{ ls = await api("/api/lixeira"); }catch(e){ return toast(e.message); }
+  S.nLixeira = ls.length; renderNav();
+  if(rota().v!=="lixeira") return;
+  $("#page").innerHTML = `<div class="ph fade"><div><h1>Lixeira</h1><p>Buscas descartadas. Ficam aqui por 30 dias e depois são apagadas. Restaurar traz de volta a busca e os leads que saíram com ela.</p></div>
+    <div class="acts">${ls.length?`<button class="btn danger" id="lxVazia">${ic("trash")}Esvaziar lixeira</button>`:""}</div></div>
+    <div class="card fade">${!ls.length?`<div class="empty" style="padding:60px 20px"><div class="ic">${ic("trash")}</div><b>Lixeira vazia</b>As buscas que você descartar aparecem aqui.</div>`:
+    `<div class="twrap"><table class="t"><thead><tr><th>Busca</th><th style="text-align:right">Empresas</th><th style="text-align:right">Saem da base</th><th></th></tr></thead><tbody>
+    ${ls.map(b=>`<tr><td><div class="lead-n">${esc(b.parametros.nichos.join(", "))}</div><div class="lead-c">${esc(localB(b))} · ${esc(b.lixeira_motivo||"sem motivo")}</div><div class="lead-c">${fData(b.lixeira_em)} · apaga em ${b.dias_restantes} dia${b.dias_restantes===1?"":"s"}</div></td>
+      <td class="num" style="text-align:right">${fN(b.total)}</td><td class="num" style="text-align:right">${fN(b.leads_guardados)}</td>
+      <td style="white-space:nowrap;text-align:right"><button class="btn sm" data-rest="${b.id}" title="Restaurar">${ic("refresh")}Restaurar</button> <button class="btn sm danger" data-del="${b.id}" title="Excluir de vez">${ic("trash")}</button></td></tr>`).join("")}
+    </tbody></table></div>`}</div>
+    ${ls.length?`<div class="hint fade" style="margin-top:10px">“Saem da base” = leads novos que vieram só dessa busca e que você nunca trabalhou. Quem você já contatou ou anotou fica na base mesmo se a busca for excluída.</div>`:""}`;
+  $$("[data-rest]").forEach(b => b.onclick = async () => { try{ await api(`/api/buscas/${b.dataset.rest}/restaurar`,{method:"POST",body:{}}); }catch(e){ return toast(e.message); }
+    await Promise.all([carregaBuscas(),carregaLeads()]); toast("Busca restaurada"); VIEWS.lixeira(); });
+  $$("[data-del]").forEach(b => b.onclick = async () => { if(!confirma("lxdel"+b.dataset.del,"Excluir de vez? Não dá para desfazer.")) return;
+    try{ await api(`/api/buscas/${b.dataset.del}`,{method:"DELETE"}); }catch(e){ return toast(e.message); }
+    await carregaLeads(); toast("Busca excluída"); VIEWS.lixeira(); });
+  $("#lxVazia") && ($("#lxVazia").onclick = async () => { if(!confirma("lxvazia",`Apagar de vez as ${ls.length} buscas da lixeira? Não dá para desfazer.`)) return;
+    const r = await api("/api/lixeira/esvaziar",{method:"POST",body:{}}); await carregaLeads(); toast(`${r.apagadas} buscas apagadas`); VIEWS.lixeira(); });
+};

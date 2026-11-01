@@ -27,6 +27,7 @@
 | `painel/disparo.py` | disparo automático e follow-up com limites; respondedor da IA com espera |
 | `painel/agenda.py` | horários livres e reservas sem conflito (UTC-3) |
 | `painel/visoes.py` | resumos devolvidos à tela |
+| `painel/lixeira.py` + `painel/rotas_lixeira.py` | lixeira de buscas: mandar, restaurar, excluir de vez, esvaziar e limpeza em 30 dias; rotas `/api/lixeira*` e `/api/buscas/<id>/lixeira|restaurar` |
 | `painel/mcp_server.py` | servidor MCP stdio que usa a API do painel com token local |
 | `scripts/scrape.py`, `scripts/scrape.sh` | CLI original do kit (usada pelo painel para HTTP, grade e extração de e-mail/redes) |
 

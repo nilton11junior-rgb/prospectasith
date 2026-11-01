@@ -80,7 +80,7 @@ function upsertLead(l){ const p = {...l, n_hist:(l.historico||[]).length}; delet
 // ═════════════ navegação ═════════════
 const NAV = [
   ["sec","Visão geral"], ["inicio","Início","home"],
-  ["sec","Prospecção"], ["nova","Nova busca","plus"], ["buscas","Buscas","hist"], ["leads","Leads","users"], ["funil","Funil de vendas","kanban"],
+  ["sec","Prospecção"], ["nova","Nova busca","plus"], ["buscas","Buscas","hist"], ["leads","Leads","users"], ["funil","Funil de vendas","kanban"], ["lixeira","Lixeira","trash"],
   ["sec","Atendimento"], ["whatsapp","WhatsApp interno","wa"], ["campanhas","Campanhas","send"], ["agente","Agente IA","spark"], ["agenda","Agenda","cal"],
   ["sec","Ajustes"], ["mensagens","Mensagens","msg"], ["config","Configurações","gear"],
 ];
@@ -90,6 +90,7 @@ function renderNav(){
   $("#nav").innerHTML = NAV.map(n => n[0]==="sec" ? `<div class="nav-sec">${n[1]}</div>` :
     `<a href="#/${n[0]}" class="${v===n[0]?"on":""}">${ic(n[2])}${n[1]}
       ${n[0]==="buscas"&&ativas?`<span class="badge pulse">${ativas}</span>`:""}
+      ${n[0]==="lixeira"&&S.nLixeira?`<span class="badge" style="background:var(--side-2);color:var(--muted)">${S.nLixeira}</span>`:""}
       ${n[0]==="whatsapp"&&S.naoLidas?`<span class="badge">${S.naoLidas}</span>`:""}
       ${n[0]==="leads"&&S.leads.length?`<span class="badge" style="background:var(--side-2);color:var(--muted)">${fN(S.leads.length)}</span>`:""}</a>`).join("");
 }

@@ -12,7 +12,7 @@ Quem vende serviços digitais (sites, automação, atendimento com IA) para empr
 ## Fluxos principais (implementados)
 
 1. **Buscar:** nicho + cidade (+ bairro) → motor do Google Maps → leads com telefone, WhatsApp provável, site, e-mail e redes (o painel visita o site da empresa).
-2. **Organizar:** base única sem duplicar, funil (Novo → Contatado → Respondeu → Reunião marcada → Fechou / Descartado), anotações e histórico.
+2. **Organizar:** base única sem duplicar, funil (Novo → Contatado → Respondeu → Reunião marcada → Fechou / Descartado), anotações e histórico. Busca ruim vai para a **lixeira** (com motivo): leads novos que vieram só dela saem da base, os já trabalhados ficam; dá para restaurar por 30 dias, depois é apagada.
 3. **Abordar:** WhatsApp interno (WAHA, pareado por QR Code). Primeira mensagem manual, ou disparo automático por **segmento** com rodízio de variações, limite diário, intervalo aleatório e horário comercial. Follow-up automático (2 e 5 dias) para quem não respondeu.
 4. **Atender:** agente IA (Claude Code da assinatura ou chave de API) responde leads do CRM seguindo base de conhecimento e estratégia do segmento; marca chamada só em horário livre e só confirma depois de reservar; passa para humano ou encerra quando pedem.
 5. **Agendar:** agenda com disponibilidade, sem conflito; reserva move o lead para "Reunião marcada".

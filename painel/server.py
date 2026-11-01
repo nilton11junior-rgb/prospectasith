@@ -24,7 +24,9 @@ from whatsapp import waha_garante_sessao
 from disparo import disparador, respondedor
 from buscas import trabalhador
 from estado import kit
+import lixeira
 import rotas_atendimento
+import rotas_lixeira
 import rotas_auth
 from seguranca_http import (CABECALHOS_SEGURANCA, LIMITE_CORPO, host_permitido, nome_host, origem_permitida)
 
@@ -62,6 +64,7 @@ def carregar():
             b["estado"], b["etapa"] = "na_fila", "Aguardando (retomada após reinício)"
             fila.append(b["id"])
     fila.sort(key=lambda i: buscas[i]["criado_em"])
+    lixeira.limpar_vencidas()  # o que está na lixeira há mais de 30 dias é apagado
     salvar_leads()
 
 
@@ -156,7 +159,7 @@ class H(BaseHTTPRequestHandler):
 
     # ── atendimento: WhatsApp, conversas, agente, agenda ──
     def _atendimento(self, metodo, path):
-        return rotas_atendimento.atender(self, metodo, path)
+        return rotas_lixeira.atender(self, metodo, path) or rotas_atendimento.atender(self, metodo, path)
 
     def do_GET(self):
         if self._guarda("GET"):
@@ -182,10 +185,6 @@ class H(BaseHTTPRequestHandler):
             return self._envia(200, painel_inicio())
         if path == "/api/config":
             return self._envia(200, config)
-        if path == "/api/buscas":
-            with lock:
-                lista = sorted((resumo_busca(b) for b in buscas.values()), key=lambda x: -x["criado_em"])
-            return self._envia(200, lista)
         m = re.fullmatch(r"/api/buscas/([\w-]+)", path)
         if m and m.group(1) in buscas:
             with lock:
@@ -316,35 +315,12 @@ class H(BaseHTTPRequestHandler):
     def do_DELETE(self):
         if self._guarda("DELETE"):
             return
-        m = re.fullmatch(r"/api/buscas/([\w-]+)", self._rota())
-        if not m or m.group(1) not in buscas:
-            return self._envia(404, {"erro": "não encontrado"})
-        manter_trabalhados = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("leads") != ["apagar"]
-        with lock:
-            b = buscas.pop(m.group(1))
-            b["cancelar"] = True
-            if b["id"] in fila:
-                fila.remove(b["id"])
-            for lid in b.get("lead_ids", []):
-                l = leads.get(lid)
-                if not l:
-                    continue
-                if b["id"] in l["buscas"]:
-                    l["buscas"].remove(b["id"])
-                trabalhado = l["status"] != "novo" or l.get("obs") or len(l.get("historico", [])) > 1
-                if not l["buscas"] and not (manter_trabalhados and trabalhado):
-                    del leads[lid]
         try:
-            os.remove(os.path.join(DIR_BUSCAS, f"{b['id']}.json"))
-        except OSError:
-            pass
-        salvar_leads()
-        for jid in b.get("jobs_motor", []):
-            try:
-                kit.req("DELETE", f"/api/v1/jobs/{jid}")
-            except Exception:
-                pass
-        self._envia(200, {"ok": True})
+            if self._atendimento("DELETE", self._rota()):
+                return
+        except Exception as e:
+            return self._envia(502, {"erro": str(e)})
+        self._envia(404, {"erro": "não encontrado"})
 
 
 def main():
