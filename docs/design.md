@@ -25,3 +25,7 @@ Ferramenta de trabalho diário: densa, legível e rápida, com identidade SITH.I
 ## Layout
 
 Barra lateral fixa + conteúdo; abaixo de ~860 px as grades viram uma coluna e a lateral abre pelo botão de menu. Testado na largura do painel do Claude (≈500 px) e em desktop.
+
+## Histórico de buscas: descarte direto
+
+Em **Buscas**, o acesso à lixeira permanece visível mesmo vazia. Cada linha tem botão **Lixeira**; dois cliques confirmam o descarte, seguindo o padrão de confirmação do CRM. O botão não abre o detalhe da busca. Buscas rodando ou na fila exigem cancelamento antes do descarte. A lista e o contador atualizam após salvar; uma falha mantém a busca visível. A restauração segue disponível por 30 dias, preservando leads já trabalhados.
