@@ -21,7 +21,9 @@ Essa abertura pausa as rotinas de envio automático sem alterar as campanhas sal
 3. Quando concluir, clique em **Importar para o CRM**. Reimportar atualiza contatos sem duplicar leads, status, notas ou histórico.
 4. Continue em **Leads**, **Funil de vendas**, **WhatsApp interno** e **Agenda**. A **Busca avançada** e a lixeira anteriores continuam disponíveis.
 
-Empresas sem coordenadas também são importadas. Uma busca na lixeira precisa ser restaurada antes de reimportar. Apagar uma importação no CRM não apaga a busca original do scraper.
+Empresas sem coordenadas também são importadas. Uma busca na lixeira precisa ser restaurada antes de reimportar.
+
+Em **Buscas**, use **Excluir busca e leads**, **Excluir selecionadas** ou **Excluir todas**. A confirmação mostra quantos leads, conversas locais e reservas serão removidos. Leads compartilhados também saem das outras buscas; isso inclui os que já foram trabalhados. A operação não passa pela lixeira e cria backup local antes de salvar. Buscas em andamento precisam ser canceladas primeiro. Jobs excluídos ficam bloqueados contra reimportação; se o motor estiver offline, a limpeza dele é retomada em segundo plano.
 
 O iniciador localiza `../../mazyos-scraper/sithia-scraper.exe` em relação à pasta deste projeto. Para outra localização, configure `SITH_SCRAPER_EXE` e, opcionalmente, `SITH_SCRAPER_DATA`. A API usa `SITH_SCRAPER_URL` (padrão `http://127.0.0.1:8081`), sempre uma porta loopback.
 
@@ -39,6 +41,7 @@ python -X utf8 scripts/verificar.py
 | [docs/onboarding.md](docs/onboarding.md) | preparar a máquina e o primeiro uso |
 | [docs/architecture.md](docs/architecture.md) | mapa do código, fronteiras e dados |
 | [docs/design.md](docs/design.md) | interface do painel |
+| [docs/exclusao-buscas.md](docs/exclusao-buscas.md) | exclusão individual/em lote e remoção dos leads vinculados |
 | [docs/estrategia-vendas.md](docs/estrategia-vendas.md) | método de vendas que gera as mensagens e o comportamento da IA |
 | [docs/quality.md](docs/quality.md) | checagens, testes, revisão de segurança e do harness |
 | [docs/setup.md](docs/setup.md) | registro do setup do Vibe Coding Toolkit e pendências |

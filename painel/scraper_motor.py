@@ -7,6 +7,7 @@ import urllib.request
 import uuid
 import normaliza
 from estado import buscas, lock
+from exclusao_buscas import job_excluido
 
 LIMITE_RESPOSTA = 20 * 1024 * 1024
 QUANTIDADES = {20: (2, 600), 60: (5, 1200), 120: (10, 1800), 200: (18, 3600)}
@@ -72,6 +73,8 @@ def request_json(method, path, body=None):
 
 def get_job(value):
     jid = job_id(value)
+    if job_excluido(jid):
+        raise ScraperError(410, 'Essa busca foi excluída com seus leads no CRM.')
     result = request_json('GET', f'/api/v1/jobs/{jid}')
     if not isinstance(result, dict) or job_id(result.get('ID')) != jid:
         raise ScraperError(502, 'A busca devolvida pelo scraper não corresponde à solicitada.')
@@ -96,6 +99,8 @@ def listar():
             except ScraperError:
                 continue
             local = busca_do_job(jid)
+            if job_excluido(jid):
+                continue
             data = job.get('Data') if isinstance(job.get('Data'), dict) else {}
             result.append({'id': jid, 'nome': str(job.get('Name') or 'Busca sem nome')[:200],
                            'status': str(job.get('Status') or 'pending')[:30], 'criado_em': job.get('CreatedAt'),

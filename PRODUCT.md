@@ -35,6 +35,7 @@ Multiusuário, nuvem, cobrança, envio em massa sem limite, grupos de WhatsApp, 
 ## Decisões
 
 - Identidade SITH.IA: logo original, preto e roxo escuro. Menu e fluxos comerciais do Prospecta preservados.
+- Exclusão completa no histórico: individual, selecionadas e todas; remove leads inclusive compartilhados e trabalhados, conversas e reservas locais. Resumo + aceite explícito antes de apagar, backup local e bloqueio contra reimportação dos jobs removidos. Detalhes em `docs/exclusao-buscas.md`.
 - Motores separados: busca avançada original em 8080 e SITH.IA Scraper em 8081, com a central autenticada em 8090. Preservam-se dados e ajustes de ambos.
 - `Central SITH.IA.cmd` abre com envios automáticos pausados; `--automacoes` é a escolha explícita do operador para retomar as rotinas configuradas. Nenhum ajuste de campanha é apagado.
 

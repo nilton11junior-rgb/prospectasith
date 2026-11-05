@@ -26,6 +26,8 @@ Ferramenta de trabalho diário: densa, legível e rápida, com identidade SITH.I
 
 Barra lateral fixa + conteúdo; abaixo de ~860 px as grades viram uma coluna e a lateral abre pelo botão de menu. Testado na largura do painel do Claude (≈500 px) e em desktop.
 
-## Histórico de buscas: descarte direto
+## Histórico de buscas: exclusão completa
 
-Em **Buscas**, o acesso à lixeira permanece visível mesmo vazia. Cada linha tem botão **Lixeira**; dois cliques confirmam o descarte, seguindo o padrão de confirmação do CRM. O botão não abre o detalhe da busca. Buscas rodando ou na fila exigem cancelamento antes do descarte. A lista e o contador atualizam após salvar; uma falha mantém a busca visível. A restauração segue disponível por 30 dias, preservando leads já trabalhados.
+Em **Buscas**, o botão **Excluir busca e leads** aparece junto ao nome, inclusive no celular. As caixas de seleção permitem **Excluir selecionadas**; **Excluir todas** apaga o conjunto inteiro. Buscas em execução exigem cancelamento. O diálogo mostra contagens e avisa quando há leads compartilhados ou já trabalhados; o operador marca o aceite antes de confirmar. Cancelar não altera os dados. O diálogo é modal, acessível por teclado e mantém os controles bloqueados durante a gravação.
+
+A exclusão remove os leads de todas as áreas locais, incluindo outras buscas, funil, conversas e reservas. Não passa pela lixeira; há backup antes da gravação. A lixeira do menu continua disponível para descartes anteriores. Após a confirmação, a lista, os contadores, as conversas e a configuração são recarregados.

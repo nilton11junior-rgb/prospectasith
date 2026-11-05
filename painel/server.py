@@ -28,6 +28,7 @@ import lixeira
 import rotas_atendimento
 import rotas_lixeira
 import rotas_scraper
+import exclusao_buscas
 import rotas_auth
 from seguranca_http import (CABECALHOS_SEGURANCA, LIMITE_CORPO, host_permitido, nome_host, origem_permitida)
 
@@ -346,6 +347,7 @@ def main():
     carregar()
     sessoes.update(_le(ARQ_SESSOES, {}))
     threading.Thread(target=trabalhador, daemon=True).start()
+    threading.Thread(target=exclusao_buscas.trabalhador_limpeza, daemon=True).start()
     if "--sem-automacoes" not in sys.argv:
         threading.Thread(target=disparador, daemon=True).start()
         threading.Thread(target=respondedor, daemon=True).start()

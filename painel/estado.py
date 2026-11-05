@@ -110,6 +110,8 @@ def _grava(caminho, obj):
 
 def salvar_busca(b):
     with lock:
+        if b.get('_excluida'):
+            return  # o trabalhador pode estar finalizando um objeto já removido pelo operador
         _grava(os.path.join(DIR_BUSCAS, f"{b['id']}.json"), b)
 
 

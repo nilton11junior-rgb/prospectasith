@@ -146,32 +146,20 @@ VIEWS.buscas = arg => arg ? viewBusca(arg) : viewBuscas();
 function viewBuscas(){
   crumbs([["Prospecção","#/buscas"],["Buscas"]]);
   const bs = S.buscas;
-  $("#page").innerHTML = `<div class="ph"><div><h1>Buscas</h1><p>Histórico de todas as buscas, da mais recente para a mais antiga.</p></div><div class="acts"><a class="btn" href="#/lixeira">${ic("trash")}Lixeira${S.nLixeira?` (${S.nLixeira})`:""}</a><a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>
+  ExclusaoBuscas.preparar(bs);
+  const ativas=bs.some(b=>["rodando","na_fila"].includes(b.estado));
+  $("#page").innerHTML = `<div class="ph"><div><h1>Buscas</h1><p>Histórico de todas as buscas, da mais recente para a mais antiga.</p></div><div class="acts"><button class="btn danger" id="excluirSelecionadas" disabled>Excluir selecionadas</button><button class="btn danger" id="excluirTodas" ${!bs.length||ativas?'disabled':''} title="${ativas?'Cancele as buscas em andamento antes de excluir todas':'Excluir todas as buscas e seus leads'}">${ic("trash")}Excluir todas</button><a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>
   <div class="card">${!bs.length?`<div class="empty" style="padding:60px 20px"><div class="ic">${ic("hist")}</div><b>Nenhuma busca ainda</b>Comece pela primeira.<div style="margin-top:14px"><a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>`:
-  `<div class="twrap"><table class="t"><thead><tr><th>Busca</th><th>Local</th><th>Tamanho</th><th>Quando</th><th>Situação</th><th style="text-align:right">Empresas</th><th style="text-align:right">WhatsApp</th><th style="text-align:right">E-mail</th><th>Ações</th></tr></thead><tbody>
-  ${bs.map(b=>`<tr data-b="${b.id}"><td><div class="lead-n">${esc(b.parametros.nichos.join(", "))}</div>${b.novos!=null&&b.estado==="concluida"?`<div class="lead-c">${fN(b.novos)} novos na base</div>`:""}</td>
+  `<div class="twrap"><table class="t"><thead><tr><th><input type="checkbox" id="selecionarBuscas" aria-label="Selecionar todas as buscas paradas"></th><th>Busca</th><th>Local</th><th>Tamanho</th><th>Quando</th><th>Situação</th><th style="text-align:right">Empresas</th><th style="text-align:right">WhatsApp</th><th style="text-align:right">E-mail</th></tr></thead><tbody>
+  ${bs.map(b=>`<tr data-b="${b.id}"><td><input type="checkbox" data-selecionar-busca="${esc(b.id)}" aria-label="Selecionar ${esc(b.parametros.nichos.join(', '))}" ${["rodando","na_fila"].includes(b.estado)?'disabled':''}></td><td><div class="lead-n">${esc(b.parametros.nichos.join(", "))}</div>${b.novos!=null&&b.estado==="concluida"?`<div class="lead-c">${fN(b.novos)} novos na base</div>`:""}<button class="btn danger sm busca-excluir" data-excluir-busca="${esc(b.id)}" ${["rodando","na_fila"].includes(b.estado)?'disabled title="Cancele a busca antes de excluir"':''}>${ic("trash")}Excluir busca e leads</button></td>
     <td>${esc(localB(b))}</td><td class="muted">${tamanhoBusca(b)}</td><td class="muted sm">${fData(b.criado_em)}</td>
     <td style="min-width:170px"><span class="pill e-${b.estado}">${ESTADO[b.estado]}${b.posicao_fila>1?" · "+b.posicao_fila+"º":""}</span>${b.estado==="rodando"?`<div style="margin-top:6px">${barraB(b)}</div>`:""}${b.estado==="erro"?`<div class="xs" style="color:var(--err);margin-top:3px;max-width:240px">${esc(b.etapa)}</div>`:""}</td>
     <td class="num" style="text-align:right;font-weight:600">${b.estado==="concluida"?fN(b.total):b.parcial?`<span class="muted">${fN(b.parcial)}…</span>`:"—"}</td>
     <td class="num" style="text-align:right">${b.estado==="concluida"?`${fN(b.com_whatsapp)} <span class="muted xs">${fPct(b.com_whatsapp,b.total)}</span>`:"—"}</td>
-    <td class="num" style="text-align:right">${b.estado==="concluida"?`${fN(b.com_email)} <span class="muted xs">${fPct(b.com_email,b.total)}</span>`:"—"}</td>
-    <td><button class="btn danger sm" data-descartar="${esc(b.id)}" aria-label="Mandar busca para a lixeira" ${["rodando","na_fila"].includes(b.estado)?'disabled title="Cancele a busca antes de mandar para a lixeira"':'title="Mandar busca para a lixeira"'}>${ic("trash")}Lixeira</button></td></tr>`).join("")}
+    <td class="num" style="text-align:right">${b.estado==="concluida"?`${fN(b.com_email)} <span class="muted xs">${fPct(b.com_email,b.total)}</span>`:"—"}</td></tr>`).join("")}
   </tbody></table></div>`}</div>`;
   $$("tr[data-b]").forEach(tr => tr.onclick = () => location.hash = `#/buscas/${tr.dataset.b}`);
-  $$("[data-descartar]").forEach(bt => bt.onclick = e => {
-    e.stopPropagation();
-    const b = bs.find(b=>b.id===bt.dataset.descartar);
-    if(b) descartarBusca(b.id, b.estado==="erro"?"Busca com erro":"Resultado ruim");
-  });
-}
-async function descartarBusca(id, motivo){
-  if(!confirma("del"+id,"Mandar esta busca para a lixeira? Leads novos que vieram só dela saem da base; os que você já trabalhou ficam. Dá para restaurar por 30 dias.")) return;
-  try{
-    await api(`/api/buscas/${encodeURIComponent(id)}/lixeira`,{method:"POST",body:{motivo}});
-    await Promise.all([carregaBuscas(),carregaLeads(),carregaLixeira()]);
-  }catch(e){ return toast(e.message); }
-  toast("Busca na lixeira"); renderNav();
-  if(location.hash==="#/buscas") render(); else location.hash="#/buscas";
+  ExclusaoBuscas.ligar(bs);
 }
 function viewBusca(id){
   const b = S.buscas.find(x=>x.id===id);
@@ -184,7 +172,7 @@ function viewBusca(id){
       <div class="hint" style="margin-top:10px">Pode sair desta tela: a busca continua rodando e os leads aparecem sozinhos quando terminar.</div></div></div>`:"";
   if(mesma && rodando && $("#prog")){ $("#prog").outerHTML = progresso; return; }
   $("#page").innerHTML = `<div class="ph fade"><div><div class="row" style="margin-bottom:6px"><span class="pill e-${b.estado}">${ESTADO[b.estado]}</span><span class="muted sm">${tamanhoBusca(b)} · ${fData(b.criado_em)}</span></div><h1>${esc(b.parametros.nichos.join(", "))}</h1><p class="row">${ic("pin")} ${esc(localB(b))}</p></div>
-    <div class="acts">${b.estado==="concluida"?`<button class="btn" id="bExpB">${ic("down")}Exportar</button>`:""}${rodando?`<button class="btn" id="bCanc">${ic("x")}Cancelar</button>`:`<button class="btn" id="bRep">${ic("refresh")}Rodar de novo</button>`}<select class="in" id="bMot" title="Por que está indo para a lixeira?" style="width:auto"><option>Resultado ruim</option><option>Nicho errado</option><option>Cidade errada</option><option>Duplicada</option><option>Outro</option></select><button class="btn danger" id="bDel" ${rodando?"disabled title=\"Cancele a busca antes\"":""}>${ic("trash")}Lixeira</button></div></div>
+    <div class="acts">${b.estado==="concluida"?`<button class="btn" id="bExpB">${ic("down")}Exportar</button>`:""}${rodando?`<button class="btn" id="bCanc">${ic("x")}Cancelar</button>`:`<button class="btn" id="bRep">${ic("refresh")}Rodar de novo</button>`}<button class="btn danger" id="bDel" ${rodando?"disabled title=\"Cancele a busca antes\"":""}>${ic("trash")}Excluir busca e leads</button></div></div>
     ${progresso}
     ${b.estado==="erro"?`<div class="note err fade" style="margin-bottom:16px">${ic("flag")}<span><b>Deu erro:</b> ${esc(b.etapa)}</span></div>`:""}
     ${(b.avisos||[]).map(a=>`<div class="note" style="margin-bottom:10px">${esc(a)}</div>`).join("")}
@@ -198,7 +186,7 @@ function viewBusca(id){
   if(b.origem==='sithia_scraper' && $("#bRep")){
     $("#bRep").textContent='Abrir no mapa';$("#bRep").onclick=()=>location.hash=`#/scraper/${encodeURIComponent(b.scraper_job_id)}`;
   }else $("#bRep") && ($("#bRep").onclick = async()=>{ if(!confirma("rep"+id,"Rodar esta busca de novo? Leads novos entram na base; status e anotações dos atuais são mantidos.")) return; await api(`/api/buscas/${id}/repetir`,{method:"POST"}); await carregaBuscas(); render(); });
-  $("#bDel").onclick = ()=>descartarBusca(id, $("#bMot").value);
+  $("#bDel").onclick = ()=>ExclusaoBuscas.abrir([id]);
   if($("#tbl")) api(`/api/buscas/${id}`).then(d => { const ids=new Set(d.lead_ids); const fonte = () => S.leads.filter(l=>ids.has(l.id));
     $("#bExpB") && ($("#bExpB").onclick = () => exportaCsv(fonte(), semAc(b.parametros.nichos[0]).replace(/\W+/g,"-")+"_"+semAc(b.parametros.cidade).replace(/\W+/g,"-")));
     tabelaLeads($("#tbl"), fonte, "b_"+id); });

@@ -1,9 +1,23 @@
 """Rotas HTTP da lixeira de buscas. O handler (server.H) chama atender() antes das demais; True = tratou."""
 import re, urllib.parse
 import lixeira
+import exclusao_buscas
 
 
 def atender(h, metodo, path):
+    if path in ('/api/buscas/exclusao/previa', '/api/buscas/exclusao') and metodo == 'POST':
+        try:
+            d = h._corpo()
+            if not isinstance(d, dict):
+                raise exclusao_buscas.ErroExclusao(400, 'Envie uma seleção de buscas.')
+            r = (exclusao_buscas.previa(d.get('ids')) if path.endswith('/previa') else
+                 exclusao_buscas.excluir(d.get('ids'), d.get('confirmacao')))
+            h._envia(200, r)
+        except exclusao_buscas.ErroExclusao as e:
+            h._envia(e.status, {'erro': str(e)})
+        except OSError:
+            h._envia(503, {'erro': 'Não foi possível salvar a exclusão. Verifique o disco e tente novamente.'})
+        return True
     if path == "/api/buscas" and metodo == "GET":
         h._envia(200, lixeira.ativas())
         return True
