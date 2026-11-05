@@ -35,9 +35,9 @@ O iniciador da central abre com envios e respostas automáticas pausados. Manté
 
 O teste real encontrou um encerramento prematuro no fork: antes do primeiro resultado, o monitor calculava inatividade usando uma data vazia. Corrigido para contar desde o início da execução. Teste de regressão falhou antes da correção (500 ms em vez de 1 s) e passou depois.
 
-O executável corrigido foi compilado e iniciado em 8081. No reteste isolado, o Google Maps excedeu o tempo de carregamento; não houve captura real confirmada. A integração do CRM foi validada com empresas sintéticas, sem acrescentar leads de teste à base real.
+O executável corrigido foi compilado e iniciado em 8081. Após um reteste curto atingir timeout, a consulta isolada com limite normal de dez minutos concluiu em 332 segundos: **21 empresas reais, todas com place_id**. O CSV passou pelas rotas HTTP do CRM em outra base isolada: 21 importadas, zero duplicações na reimportação, status/notas/histórico conservados. Nenhum desses registros foi acrescentado à base real do usuário.
 
-O iniciador tentou abrir o Docker Desktop, mas o daemon não ficou pronto em cinco minutos. A central permanece disponível; o WhatsApp interno fica pendente do Docker/WAHA e do pareamento.
+O iniciador tentou abrir o Docker Desktop, mas o daemon não ficou pronto em cinco minutos. A porta 3000 respondeu depois; a API do CRM continuou informando WhatsApp desligado e o diagnóstico Docker excedeu seu timeout de vinte segundos. A central permanece disponível; o WhatsApp interno fica pendente do Docker/WAHA e do pareamento.
 
 Comandos de testes do motor aprovados: `go test ./runner/webrunner/...`, `go test ./web/... -skip '^TestIndexScrapeFormReplacesPaginatedJobs$'` e, dentro de `third_party/scrapemate`, `go test ./internal/inactivitytest -count=1`. A exclusão explícita do teste legado está explicada abaixo.
 

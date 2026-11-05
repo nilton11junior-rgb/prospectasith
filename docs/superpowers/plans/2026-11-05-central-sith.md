@@ -41,4 +41,4 @@
 
 ## Resultado e pendências externas
 
-Central real em 8090, dados/configuração/senha preservados, backup local e automações pausadas. Verificações finais em docs/entrega-central-sith.md. O reteste público do Google Maps excedeu o tempo de carregamento. WhatsApp ainda reporta serviço desligado; nenhum envio foi efetuado. Esses serviços externos não foram declarados validados.
+Central real em 8090, dados/configuração/senha preservados, backup local e automações pausadas. Verificações finais em docs/entrega-central-sith.md. A consulta pública final concluiu com 21 empresas; importação HTTP e reimportação dessas empresas passaram em CRM isolado, preservando estado comercial e sem duplicações. WhatsApp ainda reporta serviço desligado; nenhum envio foi efetuado. O pareamento e o envio real não foram declarados validados.
