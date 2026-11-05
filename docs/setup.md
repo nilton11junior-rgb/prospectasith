@@ -1,5 +1,10 @@
 # Setup do Vibe Coding Toolkit
 
+## Central SITH.IA — 05/11/2026
+
+Integração nativa do SITH.IA Scraper ao CRM e identidade preto/roxo, preservando os serviços e ajustes anteriores. Abertura por `Central SITH.IA.cmd`, com automações pausadas. Testes do projeto: 87 aprovados. Skills importadas para o Codex e documentação de entrega em [entrega-central-sith.md](entrega-central-sith.md). As pendências históricas abaixo registram o estado de outubro; a instalação de Superpowers no Codex foi resolvida nesta entrega.
+
+
 - Toolkit: https://github.com/soumatheusgomes/vibe-coding-toolkit, revisão `790a895304e0c08b70a5b215c9d334f1c86b816c` (18/10/2026), cópia local temporária fora do projeto. Prompt: `docs/prompts/12-existing-project-setup.md`.
 - Data: 24/10/2026. Cliente: Claude Code (app desktop, Windows 11), modelo principal Claude Opus 5.5; subagentes Claude Sonnet (inventário e casos do harness) e modelo principal (revisão de segurança).
 - Superpowers (brainstorming) não estava instalado: segui o protocolo dele manualmente (diagnóstico → design → aprovação → plano).

@@ -27,6 +27,7 @@ from estado import kit
 import lixeira
 import rotas_atendimento
 import rotas_lixeira
+import rotas_scraper
 import rotas_auth
 from seguranca_http import (CABECALHOS_SEGURANCA, LIMITE_CORPO, host_permitido, nome_host, origem_permitida)
 
@@ -161,7 +162,7 @@ class H(BaseHTTPRequestHandler):
         return rotas_auth.atender(self, metodo, path)
 
     TIPOS = {".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml",
-             ".png": "image/png"}
+             ".png": "image/png", ".webp": "image/webp"}
 
     def _estatico(self, path):
         """Arquivos de painel/static/ (CSS e JS da tela). Bloqueia ../ e qualquer coisa fora da pasta."""
@@ -175,7 +176,7 @@ class H(BaseHTTPRequestHandler):
 
     # ── atendimento: WhatsApp, conversas, agente, agenda ──
     def _atendimento(self, metodo, path):
-        return rotas_lixeira.atender(self, metodo, path) or rotas_atendimento.atender(self, metodo, path)
+        return rotas_scraper.atender(self, metodo, path) or rotas_lixeira.atender(self, metodo, path) or rotas_atendimento.atender(self, metodo, path)
 
     def do_GET(self):
         if self._guarda("GET"):
@@ -194,7 +195,7 @@ class H(BaseHTTPRequestHandler):
         if path.startswith("/static/"):
             return self._estatico(path)
         if path == "/api/status":
-            return self._envia(200, {"motor": motor_ok(), "fila": len(fila)})
+            return self._envia(200, {"motor": motor_ok(), "fila": len(fila), "automacoes_pausadas": "--sem-automacoes" in sys.argv})
         if path == "/api/municipios":
             return self._envia(200, [{k: m[k] for k in ("n", "uf", "ddd", "cap")} for m in municipios()])
         if path == "/api/inicio":
@@ -248,6 +249,8 @@ class H(BaseHTTPRequestHandler):
         m = re.fullmatch(r"/api/buscas/([\w-]+)/(cancelar|repetir)", path)
         if m and m.group(1) in buscas:
             b = buscas[m.group(1)]
+            if m.group(2) == "repetir" and b.get("origem") == "sithia_scraper":
+                return self._envia(409, {"erro": "Refaça essa busca na tela Scraper com mapa."})
             with fila_cond:
                 if m.group(2) == "cancelar":
                     b["cancelar"] = True
@@ -343,8 +346,9 @@ def main():
     carregar()
     sessoes.update(_le(ARQ_SESSOES, {}))
     threading.Thread(target=trabalhador, daemon=True).start()
-    threading.Thread(target=disparador, daemon=True).start()
-    threading.Thread(target=respondedor, daemon=True).start()
+    if "--sem-automacoes" not in sys.argv:
+        threading.Thread(target=disparador, daemon=True).start()
+        threading.Thread(target=respondedor, daemon=True).start()
     def _liga_whatsapp():  # sessão já pareada volta sozinha quando o WAHA sobe
         for _ in range(30):
             try:

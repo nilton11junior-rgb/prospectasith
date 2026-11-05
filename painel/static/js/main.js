@@ -2,10 +2,11 @@
 // ═════════════ status + atualização automática ═════════════
 async function status(){
   try{ const s=await api("/api/status");
+    $("#runtimeMode").hidden=!s.automacoes_pausadas;
     $("#dot").className="dot "+(s.motor?"ok":"off");
     $("#motorTxt").textContent = s.motor?"Motor ligado":"Motor desligado";
-    $("#motorSub").textContent = s.motor?"Roda 100% no seu computador":"Reabra o Prospeccao.cmd";
-  }catch{ $("#dot").className="dot off"; $("#motorTxt").textContent="Painel desconectado"; $("#motorSub").textContent="Reabra o Prospeccao.command"; }
+    $("#motorSub").textContent = s.motor?"Roda no seu computador":"Reabra a Central SITH.IA";
+  }catch{ $("#dot").className="dot off"; $("#motorTxt").textContent="Painel desconectado"; $("#motorSub").textContent="Reabra a Central SITH.IA"; }
 }
 async function tick(){
   if(document.hidden) return;

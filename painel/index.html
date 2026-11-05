@@ -3,17 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Prospecta</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Central SITH.IA · Prospecção</title>
+<link rel="icon" type="image/webp" href="/static/sithia-logo-3d.webp">
+<meta name="theme-color" content="#09070f">
 <link rel="stylesheet" href="/static/app.css">
+<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/static/sithia.css">
+<link rel="stylesheet" href="/static/scraper.css">
 </head>
 <body>
 <div class="app">
   <aside class="side" id="side">
     <div class="brand">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg></div>
-      <div><b>Prospecta</b><small>leads do Google Maps</small></div>
+      <div class="logo"><img src="/static/sithia-logo-3d.webp" alt="Logo SITH.IA" width="430" height="640"></div>
+      <div><b>Central SITH.IA</b><small>Prospecção e relacionamento</small></div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot">
@@ -24,11 +27,13 @@
   <div class="main">
     <header class="topbar">
       <button class="hamb" id="hamb" aria-label="Menu"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="mobile-brand" href="#/inicio" aria-label="Central SITH.IA"><img src="/static/sithia-logo-3d.webp" alt="" width="430" height="640"><span>SITH.IA</span></a>
       <div class="crumbs" id="crumbs"></div>
       <div class="sp"></div>
       <div class="gsearch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="gq" type="search" placeholder="Buscar lead pelo nome… (Enter)"></div>
-      <a class="btn pri sm" href="#/nova"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nova busca</a>
+      <a class="btn pri sm" href="#/scraper"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Buscar empresas</a>
     </header>
+    <div class="sith-runtime" id="runtimeMode" hidden>Envios automáticos pausados nesta abertura. O atendimento manual está disponível.</div>
     <div class="page" id="page"></div>
   </div>
 </div>
@@ -36,7 +41,7 @@
 <aside class="drawer" id="drawer"></aside>
 <div class="toast" id="toast"></div>
 <div class="login" id="login"><div class="card fade">
-  <div class="brand" style="padding:0 0 14px"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/></svg></div><div><b>Prospecta</b><small id="lgSub">Entre para continuar</small></div></div>
+  <div class="brand" style="padding:0 0 14px"><div class="logo"><img src="/static/sithia-logo-3d.webp" alt="Logo SITH.IA" width="430" height="640"></div><div><b>Central SITH.IA</b><small id="lgSub">Entre para continuar</small></div></div>
   <form id="lgF"><label class="lbl" style="margin-top:0" id="lgLbl">Senha</label><input class="in" type="password" id="lgS" autocomplete="current-password" style="width:100%">
   <input class="in" type="password" id="lgS2" placeholder="Repita a senha" autocomplete="new-password" style="width:100%;margin-top:8px;display:none">
   <div class="hint" id="lgH"></div><button class="btn pri" style="width:100%;margin-top:12px;justify-content:center" id="lgB">Entrar</button></form>
@@ -50,6 +55,9 @@
 <script src="/static/js/agente.js"></script>
 <script src="/static/js/campanhas.js"></script>
 <script src="/static/js/agenda.js"></script>
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script src="/static/js/scraper-mapa.js"></script>
+<script src="/static/js/scraper.js"></script>
 <script src="/static/js/main.js"></script>
 </body>
 </html>

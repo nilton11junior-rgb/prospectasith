@@ -4,21 +4,28 @@
 
 - `uv` com Python 3.12 (`uv python install 3.12`). O `Prospeccao.cmd` usa `%APPDATA%\uv\python\cpython-3.12-windows-x86_64-none\python.exe` e cai em `python` se não achar.
 - Motor de busca: `engine/google-maps-scraper.exe` (release oficial gosom v1.18.1, sha256 `c124fab3…f7848f`). Fica fora do git; baixe de https://github.com/gosom/google-maps-scraper/releases se faltar. No primeiro job ele baixa Playwright + Chromium (~150 MB).
+- SITH.IA Scraper em `../../mazyos-scraper/sithia-scraper.exe` (ou `SITH_SCRAPER_EXE`): motor adicional em 8081, instalado e personalizado neste PC. Sua pasta `webdata` é preservada.
 - Docker Desktop (para o WhatsApp/WAHA). Na primeira abertura aceite os termos.
 - Claude Code instalado e logado (`claude`) para o agente IA, ou uma chave da Anthropic na tela Agente IA.
 - Node.js (opcional): só para `scripts/verificar.py` checar a sintaxe do JavaScript.
 
 ## Primeiro uso
 
-1. Dois cliques em `Prospeccao.cmd`. Ele liga o motor, abre o Docker Desktop, sobe o WAHA e o painel e abre http://localhost:8090.
+1. Dois cliques em `Central SITH.IA.cmd`. Ele liga os dois motores e o painel em http://127.0.0.1:8090, e prepara Docker/WAHA em segundo plano.
 2. Crie a senha do painel (só no próprio computador).
 3. **WhatsApp interno → Conectar** e escaneie o QR (WhatsApp → Dispositivos conectados). O QR vence em ~1 min.
-4. **Nova busca**: nicho + cidade. A busca roda na fila; os leads aparecem em **Leads**.
+4. **Scraper com mapa**: nicho + bairro/cidade. Quando concluir, clique em **Importar para o CRM**. **Busca avançada** conserva a fila/enriquecimento anteriores e importa automaticamente seus resultados.
 5. **Agente IA**: preencha base de conhecimento e instruções. **Campanhas**: revise segmentos e mensagens. O disparo automático vem desligado.
+
+A abertura da nova central não retoma envios automáticos, mesmo se houver campanhas salvas ativas; a interface mostra o modo pausado. Depois de revisar as campanhas e por decisão do operador, execute `& '.\Central SITH.IA.cmd' --automacoes` para usar as rotinas configuradas. O atalho legado mantém a semântica anterior.
+
+As buscas importadas do mapa usam o CSV completo: empresas sem coordenadas também aparecem em Leads. Reimportar atualiza informações de contato e mantém o estado comercial. Se a importação foi para a lixeira, restaure-a antes de reimportar.
 
 ## Dados
 
 Sem banco. Tudo em `painel/dados/` (JSON, segredos e logs), fora do git. Backup = copiar essa pasta. Para recomeçar do zero, pare o painel e mova a pasta para outro lugar.
+
+O scraper adicional usa SQLite/CSV em sua própria `webdata`; a central continua usando os JSON originais. Não copie dados pessoais para o Git. Não há sincronização automática destrutiva entre as duas bases.
 
 ## Verificar
 

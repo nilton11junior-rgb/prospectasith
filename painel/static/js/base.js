@@ -82,7 +82,7 @@ function upsertLead(l){ const p = {...l, n_hist:(l.historico||[]).length}; delet
 // menu: "Início" solto e grupos que abrem/fecham. Item = [rota, rótulo, ícone]. Cada área nova entra como um grupo aqui.
 const NAV = [
   {solto:["inicio","Início","home"]},
-  {id:"prospeccao", nome:"Prospecção", ic:"search", itens:[["nova","Nova busca","plus"],["buscas","Buscas","hist"],["leads","Leads","users"],["funil","Funil de vendas","kanban"],["lixeira","Lixeira","trash"]]},
+  {id:"prospeccao", nome:"Prospecção", ic:"search", itens:[["scraper","Scraper com mapa","pin"],["nova","Busca avançada","plus"],["buscas","Buscas","hist"],["leads","Leads","users"],["funil","Funil de vendas","kanban"],["lixeira","Lixeira","trash"]]},
   {id:"atendimento", nome:"Atendimento", ic:"msg", itens:[["whatsapp","WhatsApp interno","wa"],["campanhas","Campanhas","send"],["agente","Agente IA","spark"],["agenda","Agenda","cal"]]},
   {id:"ajustes", nome:"Ajustes", ic:"gear", itens:[["mensagens","Mensagens","msg"],["config","Configurações","gear"]]},
 ];
@@ -126,6 +126,7 @@ function crumbs(parts){ $("#crumbs").innerHTML = parts.map((p,i)=> i<parts.lengt
 const VIEWS = {};
 function render(){
   const {v, arg} = rota();
+  if(v!=="scraper" && typeof ScraperUI!=="undefined") ScraperUI.fechar();
   $("#side").classList.remove("open");
   renderNav();
   (VIEWS[v] || VIEWS.inicio)(arg);

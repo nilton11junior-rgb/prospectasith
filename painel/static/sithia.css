@@ -1,0 +1,72 @@
+/* Identidade SITH.IA sobre os componentes e cores semânticas existentes do Prospecta. */
+:root {
+  color-scheme: dark;
+  --bg:#09070f; --surface:#17131f; --surface-2:#1d1729;
+  --ink:#f4efff; --ink-2:#ddd2ed; --muted:#bcaacf; --line:#332641; --line-2:#261d33;
+  --side:#0e0a16; --side-2:#20172e; --side-ink:#c8b8dd; --side-ink-hi:#f4efff;
+  --side-line:#30203e; --side-sec:#a893be; --side-act:#38204f; --side-act-ink:#dbbaff;
+  --accent:#a456ff; --accent-hi:#b574ff; --accent-ink:#fff; --accent-soft:#30203f; --accent-line:#754599;
+  --green:#8fd9ae; --green-soft:#17312a; --yellow:#edc776; --yellow-soft:#342b19;
+  --red:#ff9dba; --red-soft:#3b1e2d; --wa:#8fd9ae; --gold:#f4cc76;
+  --warn:#edc776; --warn-soft:#342b19; --err:#ff9dba; --err-soft:#3b1e2d;
+  --blue:#acbfff; --blue-soft:#222a43; --violet:#d3a2ff; --violet-soft:#352244;
+  --sh-1:0 3px 14px #0003; --sh-2:0 12px 36px #0006;
+}
+body {
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:radial-gradient(ellipse at 90% 0,#491d6a28,transparent 60%),var(--bg);
+  background-attachment:fixed;
+}
+.side {background:linear-gradient(180deg,#1b1028 0,#0e0a16 38%);}
+.brand {gap:12px;padding-top:8px;padding-bottom:24px;}
+.logo {width:42px;height:60px;flex:none;background:#09070f;border-radius:10px;box-shadow:0 0 20px #922bff22;}
+.logo img {display:block;width:34px;height:52px;object-fit:contain;}
+.brand b {font-size:17px;font-weight:650;letter-spacing:-.025em;}
+.brand small {font-size:10px;margin-top:3px;}
+.mobile-brand {display:none;}
+.nav a.on {background:linear-gradient(100deg,#6e28a5,#352044);color:#fff;}
+.nav-h {font-weight:600;}
+.topbar {background:#110c1bf2;}
+.ph h1 {font-size:28px;font-weight:600;letter-spacing:-.035em;}
+.ph p {line-height:1.6;}
+.btn {border-radius:10px;}
+.btn.pri {background:linear-gradient(135deg,#9d40f7,#7623c8);border-color:#ab59ef;color:#fff;}
+.btn.pri:hover {background:linear-gradient(135deg,#b05cff,#8b37dc);color:#fff;}
+.btn:active {transform:translateY(1px);}
+.btn.wa {background:#195f40;border-color:#337454;}
+.card {box-shadow:0 1px 0 #ffffff04,0 6px 24px #0002;}
+.kpi .n {font-weight:550;letter-spacing:-.035em;}
+.kpi .ico {border-radius:10px;}
+.in::placeholder {color:#927ca8;opacity:1;}
+.chip,.slot,.stsel button {background:#1b1425;}
+.kc {background:#1c1528;}
+.kcol {background:#110d18;}
+.pill {font-weight:550;}
+.ok-ico span.ig.on {background:#3a162e;color:#ef9acb;}
+.wa-prev,.chat-b {background:#0e141b;}
+.bubble,.msg.eu,.msg.ia,.msg.auto {background:#174936;color:#e9f7ef;}
+.msg {background:#252034;color:#eee9f5;}
+.toast {background:#e3d2fa;color:#21102e;}
+.login {background:radial-gradient(ellipse at 50% 35%,#53227544,transparent 65%),#09070f;}
+.login .card {border-color:#62417e;box-shadow:0 28px 100px #0008;}
+.login .brand {padding-bottom:24px!important;}
+.sith-runtime {padding:8px 16px;border-bottom:1px solid var(--line);background:#271b32;color:#d4b9ee;font-size:12px;}
+:focus-visible {outline:2px solid #d9b6ff;outline-offset:3px;}
+.switch input {accent-color:var(--accent);}
+.leaflet-container {font-family:inherit;background:#100d18;}
+.leaflet-tile-pane {filter:invert(1) hue-rotate(180deg) brightness(.75) saturate(.35);}
+.leaflet-control-zoom a {background:#1d142a;color:#eee3ff;border-color:#4e3467;}
+.leaflet-control-zoom a:hover {background:#382046;color:#fff;}
+.leaflet-control-attribution {background:#17131fe8!important;color:#bdaccf;font-size:10px;}
+.leaflet-control-attribution a {color:#d8b7fa;}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip {background:#20172c;color:var(--ink);border:1px solid #664681;}
+.leaflet-container a.leaflet-popup-close-button {color:#cfb8e4;}
+@media(max-width:900px){.mobile-brand{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:650;text-decoration:none;}.mobile-brand img{width:19px;height:29px;object-fit:contain;}}
+@media(max-width:640px){
+  .topbar {gap:10px;padding:0 12px;}
+  .crumbs {display:none;}
+  .topbar>.btn {font-size:11px;padding:7px 10px;}
+  .ph h1 {font-size:25px;}
+  .fun-r {grid-template-columns:110px 1fr 50px;gap:8px;}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}

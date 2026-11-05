@@ -48,16 +48,23 @@ VIEWS.mensagens = async () => {
 // ═════════════ CONFIGURAÇÕES ═════════════
 VIEWS.config = async () => {
   crumbs([["Ajustes"],["Configurações"]]);
-  let st = {motor:false}; try{ st = await api("/api/status"); }catch{}
+  let st = {motor:false}, scraperOn=false;
+  await Promise.all([api("/api/status").then(x=>st=x).catch(()=>{}),api("/api/scraper/jobs").then(()=>scraperOn=true).catch(()=>{})]);
   if(rota().v!=="config") return;
   $("#page").innerHTML = `<div class="ph fade"><div><h1>Configurações</h1><p>Motor de busca, seus dados e backup.</p></div></div>
   <div class="grid g2 fade">
+    <div class="card"><div class="card-h"><h3>SITH.IA Scraper</h3></div><div class="card-b">
+      <div class="row"><span class="dot ${scraperOn?'ok':'off'}"></span><b>${scraperOn?'Conectado à central':'Scraper desligado'}</b></div>
+      <p class="muted sm">Mapa, filtros e importação para a sua base de leads. O motor adicional usa a porta 8081.</p>
+      <a class="btn pri sm" href="#/scraper">${ic('pin')}Abrir mapa de prospecção</a>
+      ${st.automacoes_pausadas?'<div class="note" style="margin-top:14px">Envios automáticos pausados nesta abertura. Campanhas e configurações foram mantidas. Para retomar as rotinas configuradas, reabra o iniciador com --automacoes.</div>':''}
+    </div></div>
     <div class="card"><div class="card-h"><h3>Motor de busca</h3></div><div class="card-b">
       <div class="row" style="margin-bottom:12px"><span class="dot ${st.motor?"ok":"off"}"></span><b>${st.motor?"Ligado e respondendo":"Desligado"}</b></div>
       ${st.motor?`<p class="muted sm" style="margin:0">O motor roda em <code>localhost:8080</code> e só aceita conexões do seu computador.</p>`:
       `<div class="note err">${ic("flag")}<span>Feche e abra de novo o sistema com dois cliques no <b>Prospeccao.cmd</b> (na pasta do projeto).</span></div>`}
       <div class="sep"></div>
-      <div class="sm"><b>Para abrir o sistema no dia a dia:</b> dois cliques em <code>Prospeccao.cmd</code>. Ele liga o motor de busca, o WhatsApp e este painel.</div>
+      <div class="sm"><b>Para abrir o sistema no dia a dia:</b> dois cliques em <code>Central SITH.IA.cmd</code>. Ele liga os motores, o painel e prepara o WhatsApp em segundo plano.</div>
       <div class="row" style="margin-top:12px"><button class="btn sm" id="cSair">${ic("out")}Sair do painel</button></div>
     </div></div>
     <div class="card"><div class="card-h"><h3>Seus dados</h3></div><div class="card-b">
@@ -97,7 +104,7 @@ function exportaCsv(rows, nome){
   const csv = "﻿" + [cols.map(c=>c[0]).join(";"), ...rows.map(l=>cols.map(([,k])=>cel(typeof k==="function"?k(l):l[k])).join(";"))].join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
-  a.download = `prospecta_${nome}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  a.download = `sithia_${nome}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000); toast(`${fN(rows.length)} leads exportados`);
 }
 async function copiaWhats(rows){

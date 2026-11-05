@@ -1,14 +1,29 @@
-# Prospecta
+# Central de Prospecção SITH.IA
 
 CRM local de prospecção para quem vende serviços digitais a empresas locais. Encontra empresas no Google Maps, separa por situação (sem site, só Instagram, site sem Instagram, site e Instagram, nota baixa), aborda pelo WhatsApp com mensagens estratégicas por segmento, faz follow-up e deixa um agente IA atender e marcar chamadas na agenda. Tudo roda no seu computador.
 
+A central reúne o CRM Prospecta e o SITH.IA Scraper, com a logo original, tema preto/roxo e uma base única de leads. A aplicação e os arquivos ficam locais; Google Maps, WhatsApp e IA dependem dos serviços correspondentes.
+
 ## Rodar
 
-```bash
-Prospeccao.cmd
+```powershell
+& '.\Central SITH.IA.cmd'
 ```
 
-Dois cliques no `Prospeccao.cmd` ligam o motor de busca (porta 8080), o WhatsApp/WAHA no Docker Desktop (porta 3000) e o painel em http://localhost:8090. Na primeira vez, crie a senha do painel e pareie o WhatsApp em **WhatsApp interno** (QR Code).
+Dois cliques em `Central SITH.IA.cmd` ligam o painel em **http://127.0.0.1:8090**, o motor original (8080), o scraper adicional (8081) e preparam o WhatsApp/WAHA (3000) em segundo plano. A senha e os dados do Prospecta são os mesmos. Na primeira instalação, crie sua senha e pareie o WhatsApp em **WhatsApp interno**.
+
+Essa abertura pausa as rotinas de envio automático sem alterar as campanhas salvas. Para retomar as rotinas configuradas, por escolha do operador: `& '.\Central SITH.IA.cmd' --automacoes`. O atalho legado `Prospeccao.cmd` mantém o comportamento anterior.
+
+## Do mapa ao funil
+
+1. Abra **Prospecção → Scraper com mapa** e informe nicho, bairro/cidade, quantidade e raio.
+2. Acompanhe empresas e filtros no mapa. A quantidade é aproximada; buscar e-mails leva mais tempo.
+3. Quando concluir, clique em **Importar para o CRM**. Reimportar atualiza contatos sem duplicar leads, status, notas ou histórico.
+4. Continue em **Leads**, **Funil de vendas**, **WhatsApp interno** e **Agenda**. A **Busca avançada** e a lixeira anteriores continuam disponíveis.
+
+Empresas sem coordenadas também são importadas. Uma busca na lixeira precisa ser restaurada antes de reimportar. Apagar uma importação no CRM não apaga a busca original do scraper.
+
+O iniciador localiza `../../mazyos-scraper/sithia-scraper.exe` em relação à pasta deste projeto. Para outra localização, configure `SITH_SCRAPER_EXE` e, opcionalmente, `SITH_SCRAPER_DATA`. A API usa `SITH_SCRAPER_URL` (padrão `http://127.0.0.1:8081`), sempre uma porta loopback.
 
 Verificar o projeto:
 

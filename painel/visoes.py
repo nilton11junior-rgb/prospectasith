@@ -8,7 +8,7 @@ from estado import kit
 def resumo_busca(b):
     ls = [leads[i] for i in b.get("lead_ids", []) if i in leads]
     out = {k: b.get(k) for k in ("id", "parametros", "estado", "etapa", "progresso", "criado_em",
-                                 "iniciado_em", "concluido_em", "avisos", "parcial", "novos")}
+                                 "iniciado_em", "concluido_em", "avisos", "parcial", "novos", "origem", "scraper_job_id")}
     out.update(total=len(ls),
                com_whatsapp=sum(1 for l in ls if l["whatsapp"]),
                com_email=sum(1 for l in ls if l["email"]),

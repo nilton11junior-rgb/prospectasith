@@ -17,9 +17,11 @@ Lint e checagem de tipos: indisponíveis (sem ruff/mypy no projeto, por ser só 
 ## Testes
 
 - Ficam junto do código, só biblioteca padrão: `painel/test_painel.py` (núcleo), `test_seguranca.py`, `test_lixeira.py`, `test_estrategia.py` (apoio em `testes_comum.py`) e `scripts/test_scrape.py`.
+- Integração SITH.IA: `painel/test_scraper.py` usa motor HTTP local sintético; cobre CSV completo/sem coordenadas, reimportação, lixeira, dedupe, redirecionamento, UUID, login, criação de job e preservação comercial. `test_operacao.py` cobre pausa de threads de envio sem regravar campanhas. `scripts/test_central.py` cobre localização do motor adicional.
 - Rodam com `PROSPECTA_DADOS` numa pasta temporária: nunca tocam em `painel/dados/`, WhatsApp, Google ou IA.
 - Bug corrigido ganha teste que reproduz o problema. Funções que falam com serviços externos (WAHA, Claude, motor) são testadas pelo comportamento ao redor, sem simular sucesso da integração.
 - Telas: depois de mexer em `painel/static/js`, abra o painel e confira as telas afetadas (o verificar só garante a sintaxe).
+- Em 05/11/2026 foram verificadas 12 áreas no Chrome, mapa/importação/exportação, reimportação com status/notas/histórico, conteúdo malicioso escapado, perda/recuperação de conexão, resposta atrasada após navegar e celular de 390 px. As verificações de CRM usaram somente dados fictícios em armazenamento temporário.
 
 ## Revisão
 
@@ -45,3 +47,5 @@ Lint e checagem de tipos: indisponíveis (sem ruff/mypy no projeto, por ser só 
 ## Dependências
 
 Nenhuma dependência Python. Externos: motor gosom v1.18.1 (binário fixo), imagem `devlikeapro/waha:latest` (atualizar de propósito: `docker compose -f whatsapp/docker-compose.yml pull`), Claude Code CLI.
+
+Mapa da central: Leaflet 1.9.4 local (BSD-2-Clause, licença junto aos arquivos). Fonte dos arquivos: cdnjs, versão fixa. Não editar o código minificado da biblioteca. O aviso legado de 451 linhas em `scripts/scrape.py` permanece conhecido.

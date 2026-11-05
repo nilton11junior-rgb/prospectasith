@@ -1,12 +1,13 @@
 // Prospecta: telas Início, Nova busca e Buscas. Scripts clássicos: compartilham o escopo global, a ordem importa.
 // ═════════════ INÍCIO ═════════════
+const tamanhoBusca = b => b.origem==='sithia_scraper'?'Scraper com mapa':(TAM[b.parametros.tamanho]?.[0]||'Importada');
 VIEWS.inicio = async () => {
   crumbs([["Início"]]);
   const primeira = !$("#ini");
   if(primeira){
     const h = new Date().getHours(), saud = h<12?"Bom dia":h<18?"Boa tarde":"Boa noite";
-    $("#page").innerHTML = `<div class="ph fade"><div><h1>${saud}!</h1><p>Seu resumo de prospecção.</p></div>
-      <div class="acts"><a class="btn" href="#/funil">${ic("kanban")}Abrir funil</a><a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>
+    $("#page").innerHTML = `<div class="ph fade"><div><h1>${saud}!</h1><p>Sua central de prospecção, do mapa ao fechamento.</p></div>
+      <div class="acts"><a class="btn" href="#/funil">${ic("kanban")}Abrir funil</a><a class="btn pri" href="#/scraper">${ic("pin")}Buscar no mapa</a></div></div>
       <div id="ini"><div class="empty">Carregando…</div></div>`;
   }
   let d; try{ d = await api("/api/inicio"); }catch{ return; }
@@ -149,7 +150,7 @@ function viewBuscas(){
   <div class="card">${!bs.length?`<div class="empty" style="padding:60px 20px"><div class="ic">${ic("hist")}</div><b>Nenhuma busca ainda</b>Comece pela primeira.<div style="margin-top:14px"><a class="btn pri" href="#/nova">${ic("plus")}Nova busca</a></div></div>`:
   `<div class="twrap"><table class="t"><thead><tr><th>Busca</th><th>Local</th><th>Tamanho</th><th>Quando</th><th>Situação</th><th style="text-align:right">Empresas</th><th style="text-align:right">WhatsApp</th><th style="text-align:right">E-mail</th></tr></thead><tbody>
   ${bs.map(b=>`<tr data-b="${b.id}"><td><div class="lead-n">${esc(b.parametros.nichos.join(", "))}</div>${b.novos!=null&&b.estado==="concluida"?`<div class="lead-c">${fN(b.novos)} novos na base</div>`:""}</td>
-    <td>${esc(localB(b))}</td><td class="muted">${TAM[b.parametros.tamanho][0]}</td><td class="muted sm">${fData(b.criado_em)}</td>
+    <td>${esc(localB(b))}</td><td class="muted">${tamanhoBusca(b)}</td><td class="muted sm">${fData(b.criado_em)}</td>
     <td style="min-width:170px"><span class="pill e-${b.estado}">${ESTADO[b.estado]}${b.posicao_fila>1?" · "+b.posicao_fila+"º":""}</span>${b.estado==="rodando"?`<div style="margin-top:6px">${barraB(b)}</div>`:""}${b.estado==="erro"?`<div class="xs" style="color:var(--err);margin-top:3px;max-width:240px">${esc(b.etapa)}</div>`:""}</td>
     <td class="num" style="text-align:right;font-weight:600">${b.estado==="concluida"?fN(b.total):b.parcial?`<span class="muted">${fN(b.parcial)}…</span>`:"—"}</td>
     <td class="num" style="text-align:right">${b.estado==="concluida"?`${fN(b.com_whatsapp)} <span class="muted xs">${fPct(b.com_whatsapp,b.total)}</span>`:"—"}</td>
@@ -167,7 +168,7 @@ function viewBusca(id){
   const progresso = rodando?`<div class="card" style="margin-bottom:16px" id="prog"><div class="card-b"><div class="row" style="margin-bottom:10px;flex-wrap:wrap"><b>${b.estado==="na_fila"?"Aguardando na fila":"Em andamento"}</b><span class="muted sm">${esc(b.etapa)}</span>${b.parcial?`<span class="sm" style="margin-left:auto"><b class="num">${fN(b.parcial)}</b> empresas encontradas até agora</span>`:""}</div>${barraB(b)}
       <div class="hint" style="margin-top:10px">Pode sair desta tela: a busca continua rodando e os leads aparecem sozinhos quando terminar.</div></div></div>`:"";
   if(mesma && rodando && $("#prog")){ $("#prog").outerHTML = progresso; return; }
-  $("#page").innerHTML = `<div class="ph fade"><div><div class="row" style="margin-bottom:6px"><span class="pill e-${b.estado}">${ESTADO[b.estado]}</span><span class="muted sm">${TAM[b.parametros.tamanho][0]} · ${fData(b.criado_em)}</span></div><h1>${esc(b.parametros.nichos.join(", "))}</h1><p class="row">${ic("pin")} ${esc(localB(b))}</p></div>
+  $("#page").innerHTML = `<div class="ph fade"><div><div class="row" style="margin-bottom:6px"><span class="pill e-${b.estado}">${ESTADO[b.estado]}</span><span class="muted sm">${tamanhoBusca(b)} · ${fData(b.criado_em)}</span></div><h1>${esc(b.parametros.nichos.join(", "))}</h1><p class="row">${ic("pin")} ${esc(localB(b))}</p></div>
     <div class="acts">${b.estado==="concluida"?`<button class="btn" id="bExpB">${ic("down")}Exportar</button>`:""}${rodando?`<button class="btn" id="bCanc">${ic("x")}Cancelar</button>`:`<button class="btn" id="bRep">${ic("refresh")}Rodar de novo</button>`}<select class="in" id="bMot" title="Por que está indo para a lixeira?" style="width:auto"><option>Resultado ruim</option><option>Nicho errado</option><option>Cidade errada</option><option>Duplicada</option><option>Outro</option></select><button class="btn danger" id="bDel" ${rodando?"disabled title=\"Cancele a busca antes\"":""}>${ic("trash")}Lixeira</button></div></div>
     ${progresso}
     ${b.estado==="erro"?`<div class="note err fade" style="margin-bottom:16px">${ic("flag")}<span><b>Deu erro:</b> ${esc(b.etapa)}</span></div>`:""}
@@ -179,7 +180,9 @@ function viewBusca(id){
       <div class="card kpi"><div class="l">Sem site</div><div class="n num" style="color:var(--warn)">${fN(b.sem_site)}</div><div class="s">oportunidade para quem vende site</div></div></div>
       <div class="card fade" id="tbl"></div>`:""}`;
   $("#bCanc") && ($("#bCanc").onclick = async()=>{ await api(`/api/buscas/${id}/cancelar`,{method:"POST"}); await carregaBuscas(); render(); });
-  $("#bRep") && ($("#bRep").onclick = async()=>{ if(!confirma("rep"+id,"Rodar esta busca de novo? Leads novos entram na base; status e anotações dos atuais são mantidos.")) return; await api(`/api/buscas/${id}/repetir`,{method:"POST"}); await carregaBuscas(); render(); });
+  if(b.origem==='sithia_scraper' && $("#bRep")){
+    $("#bRep").textContent='Abrir no mapa';$("#bRep").onclick=()=>location.hash=`#/scraper/${encodeURIComponent(b.scraper_job_id)}`;
+  }else $("#bRep") && ($("#bRep").onclick = async()=>{ if(!confirma("rep"+id,"Rodar esta busca de novo? Leads novos entram na base; status e anotações dos atuais são mantidos.")) return; await api(`/api/buscas/${id}/repetir`,{method:"POST"}); await carregaBuscas(); render(); });
   $("#bDel").onclick = async()=>{ if(!confirma("del"+id,"Mandar esta busca para a lixeira? Leads novos que vieram só dela saem da base; os que você já trabalhou ficam. Dá para restaurar por 30 dias.")) return;
     try{ await api(`/api/buscas/${id}/lixeira`,{method:"POST",body:{motivo:$("#bMot").value}}); }catch(e){ return toast(e.message); }
     await Promise.all([carregaBuscas(),carregaLeads(),carregaLixeira()]); toast("Busca na lixeira"); location.hash="#/buscas"; };

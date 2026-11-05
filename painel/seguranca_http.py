@@ -9,7 +9,7 @@ HOSTS_LOCAIS = ("localhost", "127.0.0.1", "::1")
 CABECALHOS_SEGURANCA = (
     ("X-Content-Type-Options", "nosniff"), ("X-Frame-Options", "DENY"), ("Referrer-Policy", "no-referrer"),
     ("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' "
-     "https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; "
+     "https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org; "
      "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"),
 )
 _falhas_login = []  # horários das senhas erradas recentes (global: o servidor atende em paralelo)
