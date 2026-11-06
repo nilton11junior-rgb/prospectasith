@@ -1,5 +1,7 @@
 # Exclusão de buscas e leads
 
+O botão **Excluir lead** aparece na tabela de Leads, nos resultados das buscas, no funil, na ficha e nos resultados já importados do scraper. A rota autenticada `DELETE /api/leads/{id}` reutiliza o backup e a limpeza de vínculos, preservando as buscas. Uma nova coleta ou importação pode encontrar a empresa novamente.
+
 O operador pode apagar uma busca ou várias diretamente no histórico. O resumo autenticado calcula buscas, leads únicos, conversas e reservas; a confirmação usa a assinatura desse escopo. Alterações nos registros afetados exigem conferir um novo resumo. Progresso de uma busca sem relação não invalida a confirmação.
 
 ## Código e API

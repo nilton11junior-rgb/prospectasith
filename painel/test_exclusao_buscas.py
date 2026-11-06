@@ -32,6 +32,38 @@ class ExclusaoHttp(HttpBase):
     def setUp(self):
         semear()
 
+    def test_excluir_um_lead_limpa_vinculos_e_preserva_buscas(self):
+        app.buscas['b2']['lead_ids'].append('trab')
+        app.buscas['b3']['lixeira_leads'] = {'trab': app.leads['trab']}
+        self.assertEqual(self.req('/api/leads/trab', metodo='DELETE', token=app.API_TOKEN)[0], 200)
+        self.assertEqual(set(app.buscas), {'b1', 'b2', 'b3'})
+        self.assertEqual(set(app.leads), {'novo', 'comum', 'outro'})
+        self.assertEqual(app.buscas['b1']['lead_ids'], ['novo', 'comum'])
+        self.assertEqual(app.buscas['b2']['lead_ids'], ['comum', 'outro'])
+        self.assertEqual(app.buscas['b3']['lixeira_leads'], {})
+        self.assertEqual(set(app.conversas), {'outro'})
+        self.assertEqual(set(app.pendentes_ia), {'outro'})
+        self.assertEqual(app.agenda_dados['reservas'], [{'id': 'r2', 'lead_id': 'outro'}])
+        self.assertTrue(app.config['auto_envio']['ativo'])
+        app.leads.clear()
+        app.buscas.clear()
+        app.carregar()
+        self.assertNotIn('trab', app.leads)
+        self.assertNotIn('trab', app.buscas['b1']['lead_ids'])
+
+    def test_operacoes_atrasadas_nao_recriam_vinculos_de_lead_excluido(self):
+        from agenda import reservar
+        from whatsapp import conversa_de
+
+        antigo = app.leads['trab']
+        self.assertEqual(self.req('/api/leads/trab', metodo='DELETE', token=app.API_TOKEN)[0], 200)
+        with self.assertRaisesRegex(ValueError, 'Lead excluído'):
+            conversa_de('alvo', antigo)
+        inicio = '2027-01-04 10:00'
+        with patch('agenda.slots_do_dia', return_value=[inicio]):
+            with self.assertRaisesRegex(ValueError, 'Lead excluído'):
+                reservar(antigo, inicio)
+
     def j(self, path, body):
         return self.req(path, token=app.API_TOKEN, metodo='POST', corpo=body)
 

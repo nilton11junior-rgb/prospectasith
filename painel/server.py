@@ -212,9 +212,11 @@ class H(BaseHTTPRequestHandler):
             with lock:
                 return self._envia(200, [lead_publico(l) for l in leads.values()])
         m = re.fullmatch(r"/api/leads/([\w-]+)", path)
-        if m and m.group(1) in leads:
+        if m:
             with lock:
-                return self._envia(200, leads[m.group(1)])
+                lead = leads.get(m.group(1))
+                if lead is not None:
+                    return self._envia(200, lead)
         self._envia(404, {"erro": "não encontrado"})
 
     def do_POST(self):
@@ -298,10 +300,13 @@ class H(BaseHTTPRequestHandler):
         if self._guarda("PATCH"):
             return
         m = re.fullmatch(r"/api/leads/([\w-]+)", self._rota())
-        if not m or m.group(1) not in leads:
+        if not m:
             return self._envia(404, {"erro": "não encontrado"})
-        d, l = self._corpo(), leads[m.group(1)]
+        d = self._corpo()
         with lock:
+            l = leads.get(m.group(1))
+            if l is None:
+                return self._envia(404, {"erro": "não encontrado"})
             if d.get("status") in STATUS_LEAD and d["status"] != l["status"]:
                 l["status"] = d["status"]
                 registrar(l, "status", f"Status: {NOME_STATUS[d['status']]}")

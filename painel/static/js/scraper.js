@@ -48,7 +48,7 @@ const ScraperUI = (() => {
         <td>${esc(e.bairro||e.cidade||'—')}</td><td class="num">${esc(fNota(e.nota))}</td>
         <td>${esc(e.telefone||'—')}${e.whatsapp?'<span class="sc-wa">WhatsApp</span>':''}</td>
         <td>${site?`<a href="${esc(site)}" target="_blank" rel="noopener noreferrer">${esc(dominio(site))}</a>`:'<span class="muted">Sem site</span>'}</td>
-        <td>${inCRM?`<button class="btn sm" data-sc-lead="${esc(e.id)}">Abrir ficha</button>`:'<span class="muted sm">Ainda não importado</span>'}</td></tr>`;
+        <td>${inCRM?`<button class="btn sm" data-sc-lead="${esc(e.id)}">Abrir ficha</button> ${botaoExcluirLead(e.id)}`:'<span class="muted sm">Ainda não importado</span>'}</td></tr>`;
     }).join('')||`<tr><td colspan="6" class="empty">${total?'Nenhuma empresa corresponde ao filtro.':'Os resultados aparecem aqui enquanto o scraper trabalha.'}</td></tr>`;
     $('#scPageInfo').textContent=`${fN(lista.length)} empresas · página ${estado.pagina+1} de ${paginas}`;
     $('#scPrev').disabled=estado.pagina===0;$('#scNext').disabled=estado.pagina+1>=paginas;

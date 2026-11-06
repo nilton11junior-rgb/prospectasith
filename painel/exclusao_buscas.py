@@ -7,6 +7,7 @@ import re
 import time
 import urllib.error
 import uuid
+from copy import deepcopy
 from estado import (ARQ_AGENDA, ARQ_CONFIG, ARQ_CONVERSAS, ARQ_LEADS, DADOS, DIR_BUSCAS,
                     _grava, _le, agenda_dados, buscas, config, conversas, fila, kit, leads, lock, pendentes_ia)
 
@@ -57,7 +58,7 @@ def _plano(ids):
               'auto': config.get('auto_envio', {})}
     assinatura = json.dumps(escopo, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode()
     resumo['confirmacao'] = hashlib.sha256(assinatura).hexdigest()
-    return resumo, alvos, cv
+    return resumo, alvos
 
 
 def previa(ids):
@@ -85,26 +86,80 @@ def _gravar(snapshot, anteriores):
             pass
 
 
+def _remover_leads(snapshot, alvos):
+    for lid in alvos:
+        snapshot['leads'].pop(lid, None)
+    for b in snapshot['buscas'].values():
+        ids = b.get('lead_ids', [])
+        if alvos.intersection(ids):
+            b['lead_ids'] = [lid for lid in ids if lid not in alvos]
+            if b.get('novos') is not None:
+                b['novos'] = min(b['novos'], len(b['lead_ids']))
+        if 'lixeira_leads' in b:
+            b['lixeira_leads'] = {lid: l for lid, l in b['lixeira_leads'].items() if lid not in alvos}
+    snapshot['conversas'] = {n: c for n, c in snapshot['conversas'].items() if c.get('lead_id') not in alvos}
+    snapshot['agenda']['reservas'] = [
+        r for r in snapshot['agenda'].get('reservas', []) if r.get('lead_id') not in alvos
+    ]
+
+
+def _persistir(antes, depois, alvos):
+    copia = backup(antes)
+    try:
+        _gravar(depois, antes['buscas'])
+    except OSError:
+        _gravar(antes, depois['buscas'])
+        raise
+    removidas = antes['buscas'].keys() - depois['buscas'].keys()
+    for bid in removidas:
+        buscas[bid]['_excluida'] = True
+        buscas.pop(bid)
+    # Mantenha as referências usadas pelos trabalhadores das buscas restantes.
+    for bid, b in buscas.items():
+        novo = depois['buscas'][bid]
+        for campo in ('lead_ids', 'novos', 'lixeira_leads'):
+            if campo in novo and novo[campo] != b.get(campo):
+                b[campo] = novo[campo]
+    for lid in alvos:
+        removido = leads.pop(lid, None)
+        if removido is not None:
+            removido['_excluido'] = True
+    cvs = antes['conversas'].keys() - depois['conversas'].keys()
+    for n in cvs:
+        conversas.pop(n, None)
+    reservas = agenda_dados.setdefault('reservas', [])
+    reservas[:] = [r for r in reservas if r.get('lead_id') not in alvos]
+    auto = depois['config'].get('auto_envio', {})
+    if auto != antes['config'].get('auto_envio', {}):
+        config.setdefault('auto_envio', {}).update(auto)
+    fila[:] = [bid for bid in fila if bid not in removidas]
+    numeros = {re.sub(r'\D', '', str(antes['leads'].get(lid, {}).get(campo) or ''))
+               for lid in alvos for campo in ('whatsapp', 'tel_digitos')} - {''}
+    for n in list(pendentes_ia):
+        if n in cvs or (n not in conversas and re.sub(r'\D', '', n) in numeros):
+            pendentes_ia.pop(n, None)
+    return copia
+
+
+def excluir_lead(lid):
+    with lock:
+        if lid not in leads:
+            raise ErroExclusao(404, 'Lead não encontrado.')
+        antes = _snapshot()
+        depois = deepcopy(antes)
+        _remover_leads(depois, {lid})
+        return {'id': lid, 'backup': _persistir(antes, depois, {lid})}
+
+
 def excluir(ids, confirmacao):
     with lock:
-        resumo, alvos, cvs = _plano(ids)
+        resumo, alvos = _plano(ids)
         if not isinstance(confirmacao, str) or not hmac.compare_digest(confirmacao, resumo['confirmacao']):
             raise ErroExclusao(409, 'A lista mudou ou falta confirmação. Confira o resumo novamente.')
         antes = _snapshot()
-        copia = backup(antes)  # falhar aqui não altera nenhum dado
-        depois = json.loads(json.dumps(antes))
+        depois = deepcopy(antes)
         removidas = [depois['buscas'].pop(i) for i in resumo['ids']]
-        for lid in alvos:
-            depois['leads'].pop(lid, None)
-        for b in depois['buscas'].values():
-            b['lead_ids'] = [lid for lid in b.get('lead_ids', []) if lid not in alvos]
-            if b.get('novos') is not None:
-                b['novos'] = min(b['novos'], len(b['lead_ids']))
-            if 'lixeira_leads' in b:
-                b['lixeira_leads'] = {lid: l for lid, l in b['lixeira_leads'].items() if lid not in alvos}
-        for n in cvs:
-            depois['conversas'].pop(n, None)
-        depois['agenda']['reservas'] = [r for r in depois['agenda'].get('reservas', []) if r.get('lead_id') not in alvos]
+        _remover_leads(depois, alvos)
         auto = depois['config'].get('auto_envio', {})
         filtros = auto.get('buscas', [])
         auto['buscas'] = [bid for bid in filtros if bid not in resumo['ids']]
@@ -115,33 +170,7 @@ def excluir(ids, confirmacao):
             for motor, jid in [('original', j) for j in b.get('jobs_motor', [])] + [('scraper', b.get('scraper_job_id'))]:
                 if jid:
                     excl[motor + ':' + str(jid)] = {'motor': motor, 'id': str(jid), 'pendente': True}
-        try:
-            _gravar(depois, antes['buscas'])
-        except OSError:
-            _gravar(antes, depois['buscas'])  # snapshot local permite recuperar a gravação interrompida
-            raise
-        # Preservar objetos que um trabalhador ou conversa não excluídos ainda utilizam.
-        for bid in resumo['ids']:
-            buscas[bid]['_excluida'] = True
-            buscas.pop(bid)
-        for bid, b in buscas.items():
-            novo = depois['buscas'][bid]
-            for campo in ('lead_ids', 'novos', 'lixeira_leads'):
-                if campo in novo:
-                    b[campo] = novo[campo]
-        for lid in alvos:
-            leads.pop(lid, None)
-        for n in cvs:
-            conversas.pop(n, None)
-        reservas = agenda_dados.setdefault('reservas', [])
-        reservas[:] = [r for r in reservas if r.get('lead_id') not in alvos]
-        config.setdefault('auto_envio', {}).update(depois['config'].get('auto_envio', {}))
-        fila[:] = [bid for bid in fila if bid not in resumo['ids']]
-        numeros = {re.sub(r'\D', '', str(antes['leads'].get(lid, {}).get(campo) or ''))
-                   for lid in alvos for campo in ('whatsapp', 'tel_digitos')} - {''}
-        for n in list(pendentes_ia):
-            if n in cvs or re.sub(r'\D', '', n) in numeros:
-                pendentes_ia.pop(n, None)
+        copia = _persistir(antes, depois, alvos)
         return {**resumo, 'backup': copia, 'limpeza_pendente': sum(j.get('pendente', False) for j in excl.values())}
 
 

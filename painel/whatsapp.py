@@ -100,6 +100,8 @@ def salvar_conversas():
 
 def conversa_de(numero, lead):
     with lock:
+        if lead.get("_excluido"):
+            raise ValueError("Lead excluído.")
         c = conversas.get(numero)
         if not c:
             c = conversas[numero] = {"numero": numero, "lead_id": lead["id"], "msgs": [], "nao_lidas": 0,
@@ -192,10 +194,11 @@ def wa_evento(ev):
     numero = _numero_evento(p)
     if not numero or not texto:
         return
-    lead = lead_por_numero(numero, internacional=True)
-    if not lead:
-        return  # conversa pessoal / número fora do CRM: ignorada, nada é salvo
-    c = conversa_de(numero, lead)
+    with lock:
+        lead = lead_por_numero(numero, internacional=True)
+        if not lead:
+            return  # conversa pessoal / número fora do CRM: ignorada, nada é salvo
+        c = conversa_de(numero, lead)
     mid = p.get("id")
     if p.get("fromMe"):
         if mid in (c.get("enviados_ids") or []):
@@ -209,6 +212,8 @@ def wa_evento(ev):
     if not _add_msg(c, "lead", texto, mid, p.get("timestamp")):
         return
     with lock:
+        if lead.get("_excluido"):
+            return
         c["nao_lidas"] = c.get("nao_lidas", 0) + 1
         registrar(lead, "resposta", f"Respondeu no WhatsApp: {texto[:120]}")
         if lead["status"] in ("novo", "contatado"):

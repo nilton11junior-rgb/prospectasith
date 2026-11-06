@@ -3,6 +3,66 @@
 const FL = ls.get("fl", {texto:"", wa:false, email:false, semsite:false, nota4:false, status:"", cidade:"", categoria:"", ocultarFechados:true, ocultarDescartados:false});
 const TB = {ordem:{c:"nota",d:-1}, pag:0, sel:new Set()};
 const POR_PAG = 50;
+
+function botaoExcluirLead(id){
+  return `<button class="btn danger sm busca-excluir" type="button" data-excluir-lead="${esc(id)}">${ic("trash")}Excluir lead</button>`;
+}
+
+function confirmarExclusaoLead(id){
+  const lead = leadAberto?.id === id ? leadAberto : S.map[id];
+  if(!lead || $("dialog[open]")) return;
+
+  const dialog = document.createElement("dialog");
+  dialog.className = "exclusao-dialog";
+  dialog.setAttribute("aria-labelledby", "excluirLeadTitulo");
+  dialog.innerHTML = `<form method="dialog">
+    <div class="exclusao-body">
+      <h2 id="excluirLeadTitulo">Excluir lead?</h2>
+      <p><strong>${esc(lead.nome)}</strong> será removido da base, do funil e dos resultados das buscas, junto das conversas e reservas vinculadas no CRM.</p>
+      <p class="muted sm">O CRM cria um backup local antes de apagar.</p>
+      <p class="exclusao-erro" role="alert"></p>
+    </div>
+    <div class="exclusao-rodape">
+      <button class="btn" autofocus>Cancelar</button>
+      <button class="btn danger" type="button" id="confirmarExcluirLead">Excluir lead</button>
+    </div>
+  </form>`;
+  dialog.addEventListener("close", () => dialog.remove());
+  document.body.append(dialog);
+  dialog.showModal();
+
+  const confirmar = $("#confirmarExcluirLead", dialog);
+  const cancelar = $("button[autofocus]", dialog);
+  dialog.addEventListener("cancel", e => {
+    if(cancelar.disabled) e.preventDefault();
+  });
+  confirmar.onclick = async () => {
+    confirmar.disabled = cancelar.disabled = true;
+    confirmar.textContent = "Excluindo…";
+    try{
+      await api(`/api/leads/${encodeURIComponent(id)}`, {method:"DELETE"});
+    }catch(e){
+      $(".exclusao-erro", dialog).textContent = e.message;
+      confirmar.disabled = cancelar.disabled = false;
+      confirmar.textContent = "Excluir lead";
+      return;
+    }
+    delete S.map[id];
+    S.leads = S.leads.filter(item => item.id !== id);
+    TB.sel.delete(id);
+    await Promise.all([carregaBuscas(), carregaConversas(), carregaLixeira()]);
+    if(leadAberto?.id === id) fechaLead();
+    dialog.close();
+    render();
+    toast("Lead excluído");
+  };
+}
+
+document.addEventListener("click", e => {
+  const botao = e.target.closest("[data-excluir-lead]");
+  if(botao) confirmarExclusaoLead(botao.dataset.excluirLead);
+});
+
 VIEWS.leads = () => {
   crumbs([["Prospecção","#/buscas"],["Leads"]]);
   $("#page").innerHTML = `<div class="ph fade"><div><h1>Leads</h1><p>Todas as empresas encontradas, sem repetição. Clique em uma para abrir a ficha.</p></div>
@@ -51,7 +111,7 @@ function tabelaLeads(el, fonte, chave, comAcoesTopo){
         ${th("nome","Empresa")}${th("bairro","Local")}${th("telefone","Telefone")}${th("contato","Canais")}${th("nota","Nota")}${th("status","Status")}${th("atualizado_em","Atualizado")}</tr></thead>
       <tbody>${vis.map(l=>`<tr data-id="${esc(l.id)}" class="${TB.sel.has(l.id)?"sel":""}">
         <td class="chk"><input type="checkbox" data-sel="${esc(l.id)}" ${TB.sel.has(l.id)?"checked":""}></td>
-        <td><div class="lead-n">${esc(l.nome)}</div><div class="lead-c">${esc(l.categoria)}${l.fechado?' · <b style="color:var(--err)">fechado</b>':""}</div></td>
+        <td><div class="lead-n">${esc(l.nome)}</div><div class="lead-c">${esc(l.categoria)}${l.fechado?' · <b style="color:var(--err)">fechado</b>':""}</div>${botaoExcluirLead(l.id)}</td>
         <td><div class="sm">${esc(l.bairro||"—")}</div><div class="lead-c">${esc([l.cidade,l.uf].filter(Boolean).join(" - "))}</div></td>
         <td class="num sm" style="white-space:nowrap">${esc(l.telefone||"—")}</td>
         <td><div class="ok-ico"><span class="wa ${l.whatsapp?"on":""}" title="WhatsApp">${ic("wa")}</span><span class="em ${l.email?"on":""}" title="E-mail">${ic("mail")}</span><span class="ws ${l.site?"on":""}" title="Site">${ic("globe")}</span><span class="ig ${l.instagram?"on":""}" title="Instagram">${ic("ig")}</span></div></td>
@@ -71,7 +131,7 @@ function tabelaLeads(el, fonte, chave, comAcoesTopo){
     $("#selAll",el).onchange = e => { vis.forEach(l=> e.target.checked ? TB.sel.add(l.id) : TB.sel.delete(l.id)); draw(); };
     $$("tbody tr",el).forEach(tr => tr.onclick = e => {
       if(e.target.matches("input[type=checkbox]")){ const id=e.target.dataset.sel; e.target.checked?TB.sel.add(id):TB.sel.delete(id); draw(); return; }
-      if(e.target.closest(".chk")) return;
+      if(e.target.closest(".chk, [data-excluir-lead]")) return;
       abreLead(tr.dataset.id); });
     $("#pA",el) && ($("#pA",el).onclick = () => { TB.pag--; draw(); });
     $("#pP",el) && ($("#pP",el).onclick = () => { TB.pag++; draw(); });
@@ -97,7 +157,7 @@ VIEWS.lead = id => { history.replaceState(null, "", "#/leads"); render(); abreLe
 function fechaLead(){ $("#drawer").classList.remove("on"); $("#ov").classList.remove("on"); leadAberto=null;
   const t=$("#tbl"); if(t&&t._draw) t._draw(); if(rota().v==="funil"&&VIEWS.funil._draw) VIEWS.funil._draw(); }
 $("#ov").onclick = fechaLead;
-document.addEventListener("keydown", e => { if(e.key==="Escape" && leadAberto) fechaLead(); });
+document.addEventListener("keydown", e => { if(e.key==="Escape" && leadAberto && !$("dialog[open]")) fechaLead(); });
 function desenhaLead(){
   const l = leadAberto, tpls = S.config?.templates||[], tplSel = ls.get("tplSel", S.config?.padrao);
   const icEv = {whatsapp:"wa",status:"flag",nota:"note",ligacao:"phone",email:"mail",criado:"spark"};
@@ -109,6 +169,7 @@ function desenhaLead(){
       <div class="row" style="margin-bottom:8px">${pillSt(l.status)}${l.fechado?'<span class="pill s-descartado nodot">Fechado permanentemente</span>':""}</div>
       <h2>${esc(l.nome)}</h2>
       <div class="muted sm" style="margin-top:4px">${esc(l.categoria)}${l.nota?` · <span class="stars">★</span> ${fNota(l.nota)} (${fN(l.avaliacoes)} avaliações)`:""}</div>
+      ${botaoExcluirLead(l.id)}
     </div>
     <div class="dr-b">
       ${num?`<div class="row" style="gap:8px;margin-bottom:6px">
@@ -191,12 +252,13 @@ VIEWS.funil = () => {
       const lim = st==="novo"||st==="descartado" ? 40 : 200;
       return `<div class="kcol" data-st="${st}"><div class="kcol-h"><span class="dot" style="background:${COR_ST[st]};box-shadow:none"></span>${n}<span class="c num">${fN(col.length)}</span></div>
         <div class="kcol-b">${col.slice(0,lim).map(l=>`<div class="kc" draggable="true" data-id="${esc(l.id)}"><div class="n">${esc(l.nome)}</div><div class="m">${esc(l.categoria)}${l.bairro?" · "+esc(l.bairro):""}</div>
-          <div class="f"><div class="ok-ico"><span class="wa ${l.whatsapp?"on":""}">${ic("wa")}</span><span class="em ${l.email?"on":""}">${ic("mail")}</span><span class="ws ${l.site?"on":""}">${ic("globe")}</span></div>${l.nota?`<span class="xs" style="margin-left:auto"><span class="stars">★</span> ${fNota(l.nota)}</span>`:""}</div></div>`).join("")}
+          <div class="f"><div class="ok-ico"><span class="wa ${l.whatsapp?"on":""}">${ic("wa")}</span><span class="em ${l.email?"on":""}">${ic("mail")}</span><span class="ws ${l.site?"on":""}">${ic("globe")}</span></div>${l.nota?`<span class="xs" style="margin-left:auto"><span class="stars">★</span> ${fNota(l.nota)}</span>`:""}</div>${botaoExcluirLead(l.id)}</div>`).join("")}
           ${col.length>lim?`<div class="kmore">+ ${fN(col.length-lim)} — use os filtros ou a tela de Leads</div>`:""}
           ${!col.length?`<div class="kmore">Arraste para cá</div>`:""}</div></div>`; }).join("");
     let arrastando = null;
     $$(".kc").forEach(c => { c.ondragstart = e => { arrastando=c.dataset.id; c.classList.add("drag"); e.dataTransfer.effectAllowed="move"; };
-      c.ondragend = () => c.classList.remove("drag"); c.onclick = () => abreLead(c.dataset.id); });
+      c.ondragend = () => c.classList.remove("drag");
+      c.onclick = e => { if(!e.target.closest("[data-excluir-lead]")) abreLead(c.dataset.id); }; });
     $$(".kcol").forEach(col => {
       col.ondragover = e => { e.preventDefault(); col.classList.add("drop"); };
       col.ondragleave = e => { if(!col.contains(e.relatedTarget)) col.classList.remove("drop"); };

@@ -52,6 +52,8 @@ def proximos_slots(qtd=12, dias=10):
 
 def reservar(lead, inicio, origem="manual"):
     with lock:
+        if lead.get("_excluido"):
+            raise ValueError("Lead excluído.")
         try:
             dia = datetime.strptime(inicio, FMT).date()
         except ValueError:

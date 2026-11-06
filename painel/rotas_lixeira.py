@@ -5,6 +5,15 @@ import exclusao_buscas
 
 
 def atender(h, metodo, path):
+    lead = re.fullmatch(r'/api/leads/([^/]+)', path)
+    if lead and metodo == 'DELETE':
+        try:
+            h._envia(200, exclusao_buscas.excluir_lead(urllib.parse.unquote(lead[1])))
+        except exclusao_buscas.ErroExclusao as e:
+            h._envia(e.status, {'erro': str(e)})
+        except OSError:
+            h._envia(503, {'erro': 'Não foi possível salvar a exclusão. Verifique o disco e tente novamente.'})
+        return True
     if path in ('/api/buscas/exclusao/previa', '/api/buscas/exclusao') and metodo == 'POST':
         try:
             d = h._corpo()
