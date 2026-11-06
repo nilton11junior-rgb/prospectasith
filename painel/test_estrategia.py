@@ -36,6 +36,17 @@ class PrimeiroContato(unittest.TestCase):
         self.assertNotIn("avaliações", neutro)
         self.assertIn("Clínica Sorriso", neutro)
 
+    def test_artigo_concorda_com_o_nome(self):
+        # "Vi que a Consultório Dr. Wesley" e "o Instagram da Hospital Veterinário" pegam mal com o lead.
+        casos = {"Consultório Odontológico Dr. Wesley Affonso": ("o ", "do "), "Hospital Veterinário Casa do Criador": ("o ", "do "),
+                 "Espaço Pet": ("o ", "do "), "Instituto Malu Marconatto": ("o ", "do "), "Dr. Robert Ficker": ("o ", "do "),
+                 "Clínica Sorriso": ("a ", "da "), "Dra. Sylvia Tiossi": ("a ", "da "), "Odonto Renew": ("a ", "da ")}
+        for nome, (art, contr) in casos.items():
+            l = lead(nome=nome, nota=4.9, avaliacoes=50)
+            self.assertIn(f"Vi que {art}{nome}", campanhas.preenche("{gancho}", l))
+            self.assertIn(f"Instagram {contr}{nome},", campanhas.preenche("Vi o Instagram da {nome}, legal?", l))
+            self.assertIn(f"Achei {art}{nome} pelo", campanhas.preenche("Achei a {nome} pelo Google?", l))
+
     def test_segmentos_tem_banco_de_perguntas_spin(self):
         for sid, camp in roteiros.CAMPANHAS_PADRAO.items():
             for letra in ("S —", "P —", "I —", "N —"):

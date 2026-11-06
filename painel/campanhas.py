@@ -63,6 +63,20 @@ def nome_curto(nome):
     return n
 
 
+# 1ª palavra do nome que pede artigo masculino ("o Consultório", "do Hospital"); o resto fica "a" (a empresa)
+_MASCULINOS = {"hospital", "consultorio", "espaco", "instituto", "centro", "center", "dr", "doutor", "dentista",
+               "pet", "petshop", "studio", "estudio", "escritorio", "salao", "laboratorio", "grupo", "atelie", "spa",
+               "hotel", "restaurante", "bar", "posto", "mercado", "supermercado", "ponto", "mundo", "cantinho",
+               "recanto", "nucleo", "complexo", "ambulatorio", "auto", "box", "galpao", "armazem", "emporio"}
+
+
+def artigo(nome):
+    import unicodedata
+    p = (nome or "").split()
+    palavra = unicodedata.normalize("NFD", p[0] if p else "").encode("ascii", "ignore").decode().lower().strip(".ª")
+    return "o" if palavra in _MASCULINOS else "a"
+
+
 def preenche(texto, l):
     nota, aval = l.get("nota") or 0, l.get("avaliacoes") or 0
     # {elogio}: só elogia o que é verdade; vazio para nota mediana (o texto continua natural sem ele)
@@ -70,10 +84,15 @@ def preenche(texto, l):
               " com boas avaliações" if nota >= 4.2 and aval >= 5 else "")
     cidade = l.get("cidade") or "sua cidade"
     nome = nome_curto(l.get("nome"))
+    a = artigo(nome)
     # {gancho}: 1ª frase do elogio; cita as avaliações só quando a nota sustenta (senão fica neutro)
-    gancho = (f"Vi que a {nome} tem ótimas avaliações no Google." if nota >= 4.6 and aval >= 15 else
-              f"Vi que a {nome} tem boas avaliações no Google." if nota >= 4.2 and aval >= 5 else
-              f"Vi a {nome} aqui no Google.")
+    gancho = (f"Vi que {a} {nome} tem ótimas avaliações no Google." if nota >= 4.6 and aval >= 15 else
+              f"Vi que {a} {nome} tem boas avaliações no Google." if nota >= 4.2 and aval >= 5 else
+              f"Vi {a} {nome} aqui no Google.")
+    if a == "o":  # os roteiros escrevem "a/da/na {nome}"; concorda com o nome masculino
+        texto = re.sub(r"\b(d|n)a \{nome\}", r"\1o {nome}", texto)
+        texto = re.sub(r"(^|[\s(])a \{nome\}", r"\1o {nome}", texto)
+        texto = re.sub(r"(^|[\s(])A \{nome\}", r"\1O {nome}", texto)
     out = (texto.replace("{gancho}", gancho).replace("{nome}", nome).replace("{cidade}", cidade).replace("{bairro}", l.get("bairro") or cidade)
            .replace("{categoria}", (l.get("categoria") or "empresas").lower()).replace("{nota}", str(nota).replace(".", ","))
            .replace("{avaliacoes}", str(aval)).replace("{elogio}", elogio).replace("{saudacao}", saudacao()))
