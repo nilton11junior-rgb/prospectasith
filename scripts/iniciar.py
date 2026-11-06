@@ -105,9 +105,9 @@ def iniciar_whatsapp():
 def main():
     py = sys.executable
     # Manter o motor e os dados históricos da busca avançada.
-    motor = os.path.join(RAIZ, "engine", "google-maps-scraper.exe")
-    if os.path.exists(motor):
-        sobe("Motor de busca", 8080, comando_motor(RAIZ), env={"DISABLE_TELEMETRY": "1"})
+    motor = comando_motor(RAIZ)
+    if os.path.exists(motor[0]):
+        sobe("Motor de busca", 8080, motor, env={"DISABLE_TELEMETRY": "1"})
     else:
         print("• Motor da busca avançada não encontrado; as outras áreas continuam disponíveis.")
     scraper = caminhos_scraper(RAIZ)

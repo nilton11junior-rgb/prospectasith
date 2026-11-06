@@ -166,7 +166,11 @@ def job_reaproveitavel(jid):
     de raspar tudo de novo (ex.: o painel desistiu por tempo, mas o motor continuou trabalhando)."""
     try:
         _, raw = kit.req("GET", f"/api/v1/jobs/{jid}")
-        return json.loads(raw).get("Status") not in (None, "failed")
+        st = json.loads(raw).get("Status")
+        if st in (None, "failed"):
+            return False
+        # concluído sem nenhuma empresa: seguir o mesmo job só repetiria o resultado vazio
+        return st != "ok" or bool(_baixar(jid))
     except Exception:
         return False
 

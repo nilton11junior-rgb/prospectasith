@@ -3,10 +3,13 @@ import os
 
 
 def comando_motor(raiz):
-    """Motor original (busca avançada). A saída por inatividade padrão é 1 min: quando a 1ª página
-    do Google demora mais que isso, o motor sai antes de abrir as fichas e a busca vem vazia."""
-    return [os.path.join(raiz, 'engine', 'google-maps-scraper.exe'), '-web', '-addr', '127.0.0.1:8080',
-            '-data-folder', os.path.join(raiz, 'engine', 'gmapsdata'), '-exit-on-inactivity', '5m']
+    """Motor da busca avançada (8080), com a pasta de dados de sempre. O google-maps-scraper.exe
+    original encerra a busca no 1º ciclo do monitor de inatividade (1 min) quando a 1ª página do
+    Google demora: termina "ok" com 0 empresas, e o modo web ignora -exit-on-inactivity. O
+    sithia-scraper.exe tem essa correção (mesma API), então o motor usa ele quando existe."""
+    scraper = caminhos_scraper(raiz)
+    exe = scraper[0] if scraper else os.path.join(raiz, 'engine', 'google-maps-scraper.exe')
+    return [exe, '-web', '-addr', '127.0.0.1:8080', '-data-folder', os.path.join(raiz, 'engine', 'gmapsdata')]
 
 
 def caminhos_scraper(raiz):

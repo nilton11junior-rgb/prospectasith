@@ -93,6 +93,17 @@ class MotorTravado(unittest.TestCase):
         with patch.object(buscas, "kit", motor):
             self.assertEqual(buscas._baixar("j1"), [])
 
+    def test_job_concluido_vazio_nao_e_reaproveitado(self):
+        # "Rodar de novo" depois de uma busca vazia seguia o mesmo job e terminava na hora com 0 empresas.
+        motor = MotorFalso([job("vazio", "ok")], csv={"vazio": ""})
+        with patch.object(buscas, "kit", motor):
+            self.assertFalse(buscas.job_reaproveitavel("vazio"))
+
+    def test_job_concluido_com_resultado_e_reaproveitado(self):
+        motor = MotorFalso([job("cheio", "ok")], csv={"cheio": "title\nAcademia Mar\n"})
+        with patch.object(buscas, "kit", motor):
+            self.assertTrue(buscas.job_reaproveitavel("cheio"))
+
     def test_busca_normal_continua_funcionando(self):
         motor = MotorFalso(status_novo="ok", csv={"novo": "title,phone\nAcademia Mar,1332221111\n"})
         with patch.object(buscas, "kit", motor):
