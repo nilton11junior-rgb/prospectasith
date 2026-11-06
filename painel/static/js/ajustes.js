@@ -64,7 +64,7 @@ VIEWS.config = async () => {
       ${st.motor?`<p class="muted sm" style="margin:0">O motor roda em <code>localhost:8080</code> e só aceita conexões do seu computador.</p>`:
       `<div class="note err">${ic("flag")}<span>Feche e abra de novo o sistema com dois cliques no <b>Prospeccao.cmd</b> (na pasta do projeto).</span></div>`}
       <div class="sep"></div>
-      <div class="sm"><b>Para abrir o sistema no dia a dia:</b> dois cliques em <code>Central SITH.IA.cmd</code>. Ele liga os motores, o painel e prepara o WhatsApp em segundo plano.</div>
+      <div class="sm"><b>Para abrir o sistema no dia a dia:</b> dois cliques em <code>Prospecta SITH.IA.cmd</code>. Ele liga os motores, o painel e prepara o WhatsApp em segundo plano.</div>
       <div class="row" style="margin-top:12px"><button class="btn sm" id="cSair">${ic("out")}Sair do painel</button></div>
     </div></div>
     <div class="card"><div class="card-h"><h3>Seus dados</h3></div><div class="card-b">

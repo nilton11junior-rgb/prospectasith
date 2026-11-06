@@ -1,4 +1,4 @@
-# Central de Prospecção SITH.IA
+# Prospecta SITH.IA
 
 CRM local de prospecção para quem vende serviços digitais a empresas locais. Encontra empresas no Google Maps, separa por situação (sem site, só Instagram, site sem Instagram, site e Instagram, nota baixa), aborda pelo WhatsApp com mensagens estratégicas por segmento, faz follow-up e deixa um agente IA atender e marcar chamadas na agenda. Tudo roda no seu computador.
 
@@ -9,12 +9,12 @@ A central reúne o CRM Prospecta e o SITH.IA Scraper, com a logo original, tema 
 Para instalar em outro computador, siga o [passo a passo para um clone novo](docs/onboarding.md#instalar-a-partir-do-github-windows-x64).
 
 ```powershell
-& '.\Central SITH.IA.cmd'
+& '.\Prospecta SITH.IA.cmd'
 ```
 
-Dois cliques em `Central SITH.IA.cmd` ligam o painel em **http://127.0.0.1:8090**, o motor original (8080), o scraper adicional (8081) e preparam o WhatsApp/WAHA (3000) em segundo plano. A senha e os dados do Prospecta são os mesmos. Na primeira instalação, crie sua senha e pareie o WhatsApp em **WhatsApp interno**.
+Dois cliques em `Prospecta SITH.IA.cmd` ligam o painel em **http://127.0.0.1:8090**, o motor original (8080), o scraper adicional (8081) e preparam o WhatsApp/WAHA (3000) em segundo plano. A senha e os dados do Prospecta são os mesmos. Na primeira instalação, crie sua senha e pareie o WhatsApp em **WhatsApp interno**.
 
-Essa abertura pausa as rotinas de envio automático sem alterar as campanhas salvas. Para retomar as rotinas configuradas, por escolha do operador: `& '.\Central SITH.IA.cmd' --automacoes`. O atalho legado `Prospeccao.cmd` mantém o comportamento anterior.
+Essa abertura pausa as rotinas de envio automático sem alterar as campanhas salvas. Para retomar as rotinas configuradas, por escolha do operador: `& '.\Prospecta SITH.IA.cmd' --automacoes`. O atalho legado `Prospeccao.cmd` mantém o comportamento anterior.
 
 ## Do mapa ao funil
 

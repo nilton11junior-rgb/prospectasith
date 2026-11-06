@@ -1,15 +1,15 @@
-# Entrega local — Central SITH.IA
+# Entrega local — Prospecta SITH.IA
 
 Data: 05/11/2026. Branch: `codex/central-sith-prospeccao`. Sem publicação externa.
 
 ## Abrir
 
 - Central: <http://127.0.0.1:8090/>. Usa a senha já existente no Prospecta.
-- Iniciador: `Central SITH.IA.cmd`, na raiz deste projeto.
-- Atalho também disponível em `%USERPROFILE%\OneDrive\agenda sith\Abrir Central SITH.IA.cmd`.
+- Iniciador: `Prospecta SITH.IA.cmd`, na raiz deste projeto.
+- Atalho também disponível em `%USERPROFILE%\OneDrive\agenda sith\Abrir Prospecta SITH.IA.cmd`.
 - Scraper independente: <http://127.0.0.1:8081/>.
 
-O iniciador da central abre com envios e respostas automáticas pausados. Mantém as campanhas salvas. O operador pode retomar suas rotinas com `Central SITH.IA.cmd --automacoes`.
+O iniciador da central abre com envios e respostas automáticas pausados. Mantém as campanhas salvas. O operador pode retomar suas rotinas com `Prospecta SITH.IA.cmd --automacoes`.
 
 ## Entregue
 

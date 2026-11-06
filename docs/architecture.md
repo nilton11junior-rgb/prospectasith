@@ -35,7 +35,7 @@
 | `painel/rotas_scraper.py` | GET/POST `/api/scraper/jobs`, GET `/api/scraper/jobs/<uuid>/resultados`, POST `/api/scraper/jobs/<uuid>/importar` |
 | `painel/static/js/scraper.js` + `scraper-mapa.js` | tela nativa, filtros, exportação/importação e ciclo de vida do Leaflet |
 | `painel/static/sithia.css` + `scraper.css` | tema da central e layout responsivo da prospecção com mapa |
-| `scripts/central_config.py` + `Central SITH.IA.cmd` | localização do scraper adicional e abertura com envios pausados |
+| `scripts/central_config.py` + `Prospecta SITH.IA.cmd` | localização do scraper adicional e abertura com envios pausados |
 | `painel/mcp_server.py` | servidor MCP stdio que usa a API do painel com token local |
 | `scripts/scrape.py`, `scripts/scrape.sh` | CLI original do kit (usada pelo painel para HTTP, grade e extração de e-mail/redes) |
 

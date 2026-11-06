@@ -5,8 +5,8 @@ async function status(){
     $("#runtimeMode").hidden=!s.automacoes_pausadas;
     $("#dot").className="dot "+(s.motor?"ok":"off");
     $("#motorTxt").textContent = s.motor?"Motor ligado":"Motor desligado";
-    $("#motorSub").textContent = s.motor?"Roda no seu computador":"Reabra a Central SITH.IA";
-  }catch{ $("#dot").className="dot off"; $("#motorTxt").textContent="Painel desconectado"; $("#motorSub").textContent="Reabra a Central SITH.IA"; }
+    $("#motorSub").textContent = s.motor?"Roda no seu computador":"Reabra a Prospecta SITH.IA";
+  }catch{ $("#dot").className="dot off"; $("#motorTxt").textContent="Painel desconectado"; $("#motorSub").textContent="Reabra a Prospecta SITH.IA"; }
 }
 async function tick(){
   if(document.hidden) return;

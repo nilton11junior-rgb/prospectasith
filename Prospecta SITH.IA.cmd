@@ -1,7 +1,7 @@
 @echo off
 rem Central unificada. Por padrao, abre sem retomar envios automaticos.
 cd /d "%~dp0"
-title Central SITH.IA
+title Prospecta SITH.IA
 if /I "%~1"=="--automacoes" goto automacoes
 call "%~dp0Prospeccao.cmd" --sem-automacoes %*
 goto :eof

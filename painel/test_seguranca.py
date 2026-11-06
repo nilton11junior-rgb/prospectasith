@@ -49,6 +49,29 @@ class Seguranca(unittest.TestCase):
             agente.ia_decide = original
         self.assertFalse(app.conversas["5513988887777"]["ia"])
 
+    def test_ia_nao_envia_se_voce_assumiu_enquanto_ela_pensava(self):
+        # A IA leva até minutos para responder. Se nesse meio-tempo você desliga a IA ou responde
+        # a conversa, a resposta dela não pode sair (o lead receberia duas mensagens seguidas).
+        for assume in ("desliga", "responde"):
+            c = {"numero": "5513988887777", "lead_id": "a", "ia": True, "msgs": [{"t": 1, "de": "lead", "txt": "oi"}]}
+            app.conversas["5513988887777"] = c
+            enviadas = []
+
+            def decide(*a, assume=assume, c=c):
+                if assume == "desliga":
+                    c["ia"] = False
+                else:
+                    c["msgs"].append({"t": 2, "de": "eu", "txt": "respondi eu"})
+                return {"acao": "responder", "mensagem": "resposta da IA"}
+
+            original, agente.ia_decide = agente.ia_decide, decide
+            original_envio, agente.wa_enviar = agente.wa_enviar, lambda *a, **k: enviadas.append(a)
+            try:
+                agente.ia_responder("5513988887777")
+            finally:
+                agente.ia_decide, agente.wa_enviar = original, original_envio
+            self.assertEqual(enviadas, [], assume)
+
     def test_enriquecimento_so_em_endereco_publico(self):
         for url in ("http://127.0.0.1/", "localhost:3000", "http://10.0.0.5", "http://192.168.0.1", "file:///c:/x",
                     "http://8.8.8.8:3000/", "http://169.254.169.254/latest"):

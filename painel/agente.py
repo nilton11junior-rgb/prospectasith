@@ -129,7 +129,11 @@ def ia_responder(numero):
             c["ia"], c["ia_motivo"] = False, f"Limite de {LIMITE_IA_DIA} respostas da IA hoje"
             return
         c["ia_n"] += 1
+        n_antes = len(c["msgs"])
     d = ia_decide(l, c)
+    with lock:  # a IA leva até minutos: se você desligou a IA ou respondeu nesse meio-tempo, ela não fala
+        if not c.get("ia") or any(m["de"] != "lead" for m in c["msgs"][n_antes:]):
+            return
     acao, msg = d.get("acao") or "nada", (d.get("mensagem") or "").strip()
     if d.get("resumo"):
         with lock:

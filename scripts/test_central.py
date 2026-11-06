@@ -50,6 +50,31 @@ class ConfigCentral(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='sith-config-') as tmp, patch.dict(os.environ, {'SITH_SCRAPER_EXE': str(Path(tmp) / 'inexistente.exe')}):
             self.assertIsNone(module.caminhos_scraper(tmp))
 
+    def test_motor_usa_binario_com_correcao_de_inatividade(self):
+        # O google-maps-scraper.exe original encerra a busca no 1º ciclo do monitor (1 min) quando a
+        # 1ª página do Google demora: termina "ok" com 0 empresas. O sithia-scraper.exe tem a correção;
+        # o motor 8080 usa ele, com a mesma pasta de dados (histórico preservado).
+        from central_config import comando_motor
+        with tempfile.TemporaryDirectory(prefix='sith-motor-') as tmp:
+            crm = Path(tmp) / 'projetos' / 'gmaps-crm' / 'kit'
+            (crm / 'engine').mkdir(parents=True)
+            (crm / 'engine' / 'google-maps-scraper.exe').write_bytes(b'')
+            corrigido = Path(tmp) / 'projetos' / 'mazyos-scraper' / 'sithia-scraper.exe'
+            corrigido.parent.mkdir(parents=True)
+            corrigido.write_bytes(b'')
+            with patch.dict(os.environ, {}, clear=False):
+                os.environ.pop('SITH_SCRAPER_EXE', None)
+                cmd = comando_motor(str(crm))
+            self.assertEqual(cmd[:4], [str(corrigido), '-web', '-addr', '127.0.0.1:8080'])
+            self.assertEqual(cmd[cmd.index('-data-folder') + 1], str(crm / 'engine' / 'gmapsdata'))
+            self.assertNotIn('-exit-on-inactivity', cmd)  # o modo web ignora essa opção
+
+    def test_motor_sem_binario_corrigido_cai_no_original(self):
+        from central_config import comando_motor
+        with tempfile.TemporaryDirectory(prefix='sith-motor-') as tmp, \
+             patch.dict(os.environ, {'SITH_SCRAPER_EXE': str(Path(tmp) / 'inexistente.exe')}):
+            self.assertEqual(comando_motor(tmp)[0], os.path.join(tmp, 'engine', 'google-maps-scraper.exe'))
+
 
 if __name__ == '__main__':
     unittest.main()

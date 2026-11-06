@@ -2,6 +2,7 @@
 import csv, functools, io, ipaddress, json, re, socket, time
 import urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 from estado import TAMANHOS, buscas, fila, fila_cond, leads, lock, salvar_busca, salvar_leads
 from normaliza import lead_de, localizar, mesclar_leads, whatsapp_em
 from estado import kit
@@ -109,9 +110,55 @@ def atualizar(b, **kw):
         b["atualizado_em"] = time.time()
 
 
+PENDENTE_MAX = 300   # s na fila sem outro job trabalhando: o motor parou de pegar jobs
+CHECAGEM_FILA = 60   # s entre conferências da fila enquanto o job espera
+TRAVADO_FOLGA = 600  # s além do max_time do próprio job para considerar "working" travado
+DESTRAVAR = "Encerre google-maps-scraper.exe no Gerenciador de Tarefas e abra o Prospecta SITH.IA de novo."
+
+
 def _baixar(jid):
-    _, raw = kit.req("GET", f"/api/v1/jobs/{jid}/download")
+    try:
+        _, raw = kit.req("GET", f"/api/v1/jobs/{jid}/download")
+    except urllib.error.HTTPError as e:
+        if e.code == 404:  # o motor só cria o CSV quando começa a gravar resultados
+            return []
+        raise
     return list(csv.DictReader(io.StringIO(raw.decode("utf-8", "replace"))))
+
+
+def _inicio_job(j):
+    try:
+        return datetime.fromisoformat(j["Date"].replace("Z", "+00:00"))
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return None
+
+
+def _jobs_trabalhando(ignorar=None):
+    try:
+        _, raw = kit.req("GET", "/api/v1/jobs")
+        return [j for j in (json.loads(raw) or []) if j.get("Status") == "working" and j.get("ID") != ignorar]
+    except Exception:
+        return []
+
+
+def liberar_fila(ignorar=None):
+    """O binário do motor no Windows às vezes nunca sai de "working" e segura a fila: as buscas
+    novas ficam "pending" para sempre. Registro velho de busca do painel é apagado; se o motor
+    recusar (processo ainda preso) ou o job não for do painel, avisa como destravar."""
+    agora = datetime.now(timezone.utc)
+    for j in _jobs_trabalhando(ignorar):
+        inicio = _inicio_job(j)
+        prazo = (j.get("Data") or {}).get("max_time", 0) / 1e9 + TRAVADO_FOLGA
+        if not inicio or (agora - inicio).total_seconds() <= prazo:
+            continue
+        if str(j.get("Name", "")).startswith("painel:"):
+            try:
+                kit.req("DELETE", f"/api/v1/jobs/{j['ID']}")
+                continue
+            except Exception:
+                pass
+        desde = inicio.astimezone().strftime("%d/%m %H:%M")
+        raise RuntimeError(f"O motor de busca travou numa busca anterior (desde {desde}) e não começa as novas. {DESTRAVAR}")
 
 
 def job_reaproveitavel(jid):
@@ -119,13 +166,18 @@ def job_reaproveitavel(jid):
     de raspar tudo de novo (ex.: o painel desistiu por tempo, mas o motor continuou trabalhando)."""
     try:
         _, raw = kit.req("GET", f"/api/v1/jobs/{jid}")
-        return json.loads(raw).get("Status") not in (None, "failed")
+        st = json.loads(raw).get("Status")
+        if st in (None, "failed"):
+            return False
+        # concluído sem nenhuma empresa: seguir o mesmo job só repetiria o resultado vazio
+        return st != "ok" or bool(_baixar(jid))
     except Exception:
         return False
 
 
 def rodar_job(b, corpo, rotulo, jid=None):
     if not jid:
+        liberar_fila()
         _, raw = kit.req("POST", "/api/v1/jobs", corpo)
         jid = json.loads(raw).get("id")
         if not jid:
@@ -136,6 +188,7 @@ def rodar_job(b, corpo, rotulo, jid=None):
     # o binário do motor no Windows às vezes termina a raspagem e fica preso em "working":
     # se o CSV já tem linhas e não cresce há 3 min, considera pronto
     ultima_checagem, linhas_vistas, parado_desde = inicio, 0, None
+    ultima_fila = inicio
     while True:
         if b.get("cancelar"):
             raise Cancelada()
@@ -144,6 +197,12 @@ def rodar_job(b, corpo, rotulo, jid=None):
         atualizar(b, etapa=f"{rotulo} — {int(time.time() - inicio)}s")
         if st == "ok":
             break
+        # job parado na fila: outro pode ter travado no meio, ou o motor parou de pegar jobs
+        if st == "pending" and time.time() - ultima_fila >= CHECAGEM_FILA:
+            ultima_fila = time.time()
+            liberar_fila(ignorar=jid)
+            if not _jobs_trabalhando(jid) and time.time() - inicio >= PENDENTE_MAX:
+                raise RuntimeError(f"O motor não começou a busca em {max(1, PENDENTE_MAX // 60)} min. {DESTRAVAR}")
         if st == "working" and time.time() - ultima_checagem >= 60:
             ultima_checagem = time.time()
             atual = _baixar(jid)
@@ -157,6 +216,8 @@ def rodar_job(b, corpo, rotulo, jid=None):
             raise RuntimeError("O Google recusou a busca (possível bloqueio temporário). Espere alguns minutos.")
         # o motor pode demorar a começar o job e a visitar os sites; dá folga antes de desistir
         if time.time() - inicio > corpo["max_time"] + 900:
+            if st == "pending":
+                raise RuntimeError(f"O motor não começou a busca: ficou na fila atrás de outra. {DESTRAVAR}")
             parcial = _baixar(jid)
             if parcial:
                 with lock:

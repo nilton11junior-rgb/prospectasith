@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Liga a Central SITH.IA: motores nativos, WhatsApp (WAHA no Docker Desktop) e painel.
+"""Liga a Prospecta SITH.IA: motores nativos, WhatsApp (WAHA no Docker Desktop) e painel.
 
 Cada serviço só sobe se a porta dele ainda estiver livre, então rodar de novo não duplica nada.
 Logs em painel/dados/logs/. Ctrl+C (ou fechar a janela) desliga o que este script ligou.
@@ -7,7 +7,7 @@ Logs em painel/dados/logs/. Ctrl+C (ou fechar a janela) desliga o que este scrip
     python scripts/iniciar.py [--sem-navegador]
 """
 import os, secrets, shutil, socket, subprocess, sys, threading, time, webbrowser
-from central_config import caminhos_scraper
+from central_config import caminhos_scraper, comando_motor
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 DADOS = os.path.join(RAIZ, "painel", "dados")
@@ -105,9 +105,9 @@ def iniciar_whatsapp():
 def main():
     py = sys.executable
     # Manter o motor e os dados históricos da busca avançada.
-    motor = os.path.join(RAIZ, "engine", "google-maps-scraper.exe")
-    if os.path.exists(motor):
-        sobe("Motor de busca", 8080, [motor, "-web", "-addr", "127.0.0.1:8080", "-data-folder", os.path.join(RAIZ, "engine", "gmapsdata")], env={"DISABLE_TELEMETRY": "1"})
+    motor = comando_motor(RAIZ)
+    if os.path.exists(motor[0]):
+        sobe("Motor de busca", 8080, motor, env={"DISABLE_TELEMETRY": "1"})
     else:
         print("• Motor da busca avançada não encontrado; as outras áreas continuam disponíveis.")
     scraper = caminhos_scraper(RAIZ)
@@ -122,7 +122,7 @@ def main():
         painel_cmd.append("--sem-automacoes")
     sobe("Painel", 8090, painel_cmd)
     threading.Thread(target=iniciar_whatsapp, daemon=True).start()
-    print("\nCentral SITH.IA no ar: http://127.0.0.1:8090   (feche esta janela para desligar)")
+    print("\nProspecta SITH.IA no ar: http://127.0.0.1:8090   (feche esta janela para desligar)")
     if "--sem-automacoes" in sys.argv:
         print("Envios automáticos pausados nesta abertura; configurações salvas foram preservadas.")
     if "--sem-navegador" not in sys.argv:

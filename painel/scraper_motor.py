@@ -58,7 +58,7 @@ def request(method, path, body=None):
             raise ScraperError(404, 'Busca ou resultado não encontrado no scraper.') from None
         raise ScraperError(502, 'O scraper recusou a operação. Atualize e tente novamente.') from None
     except (OSError, urllib.error.URLError):
-        raise ScraperError(503, 'Scraper desligado. Abra a Central SITH.IA para ligar o motor.') from None
+        raise ScraperError(503, 'Scraper desligado. Abra a Prospecta SITH.IA para ligar o motor.') from None
     if len(raw) > LIMITE_RESPOSTA:
         raise ScraperError(502, 'Resultado grande demais para importar de uma vez.')
     return raw
