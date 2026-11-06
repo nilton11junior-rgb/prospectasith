@@ -8,7 +8,9 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 from auditoria import auditar, bibliotecas
 from auditoria_site import cnpj_valido
+from campanhas import SEGMENTOS
 from estado import buscas, leads, lock, salvar_leads
+from oportunidades import GRUPOS, PRIORIDADES, oportunidade, prospectavel
 
 LIMITE_FILA = 200
 fila = queue.Queue()
@@ -93,12 +95,31 @@ def _enfileirar(ids, cnpj=None, somente_novas=False):
     return resultado
 
 
+def programar_automaticas():
+    with lock:
+        if len(pendentes) >= LIMITE_FILA:
+            return
+        ids = [lid for lid, lead in leads.items() if prospectavel(lead) and lid not in falhas]
+        return _enfileirar(ids, somente_novas=True)
+
+
+def agendar_automaticas():
+    while True:
+        programar_automaticas()
+        time.sleep(8)
+
+
+def _estado(lid, audit):
+    if lid in pendentes:
+        return pendentes[lid]
+    if lid in falhas:
+        return 'falhou'
+    return 'concluida' if audit.get('relatorio') else 'nao_executada'
+
+
 def _resumo(lid, lead):
     audit = lead.get('auditoria') or {}
-    estado = pendentes.get(lid)
-    if estado is None:
-        estado = 'falhou' if lid in falhas else ('concluida' if audit.get('relatorio') else 'nao_executada')
-    return {'estado': estado, 'relatorio': audit.get('relatorio'),
+    return {'estado': _estado(lid, audit), 'relatorio': audit.get('relatorio'),
             'cnpj_informado': audit.get('cnpj_informado', ''),
             'anuncios': audit.get('anuncios', {}), 'bibliotecas': bibliotecas(lead)}
 
@@ -134,6 +155,16 @@ def _anuncio(lead, d):
 
 
 def atender(h, metodo, path):
+    if metodo == 'GET' and path == '/api/oportunidades':
+        _listar_oportunidades(h)
+        return True
+    mini = re.fullmatch(r'/api/leads/([^/]+)/oportunidade', path)
+    if metodo == 'GET' and mini:
+        with lock:
+            lead = leads.get(unquote(mini[1]))
+            item = _mini(lead) if lead and prospectavel(lead) else None
+        h._envia(200, {'item': item, 'grupos': GRUPOS, 'prioridades': PRIORIDADES})
+        return True
     lead_match = re.fullmatch(r'/api/leads/([^/]+)/auditoria(/anuncios)?', path)
     busca_match = re.fullmatch(r'/api/buscas/([\w-]+)/auditoria', path)
     if not lead_match and not busca_match:
@@ -174,3 +205,40 @@ def atender(h, metodo, path):
     except OSError:
         h._envia(503, {'erro': 'Não foi possível salvar a auditoria.'})
     return True
+
+
+def _mini(lead):
+    return oportunidade(lead, _estado(lead['id'], lead.get('auditoria') or {}))
+
+
+def _listar_oportunidades(h):
+    params = parse_qs(urlsplit(h.path).query)
+    grupo = params.get('grupo', [''])[0]
+    segmento = params.get('segmento', [''])[0]
+    prioridade = params.get('prioridade', [''])[0]
+    try:
+        pagina = max(1, int(params.get('pagina', ['1'])[0]))
+    except ValueError:
+        pagina = 1
+    with lock:
+        itens = [_mini(lead) for lead in leads.values() if prospectavel(lead)]
+    if segmento:
+        itens = [x for x in itens if x['segmento'] == segmento]
+    resumo = {k: sum(x['prioridade'] == k for x in itens) for k in PRIORIDADES}
+    auditorias = {k: sum(x['auditoria'] == k for x in itens)
+                  for k in ('nao_executada', 'na_fila', 'executando', 'concluida', 'falhou')}
+    grupos = {k: {**d, 'total': sum(x['grupo'] == k for x in itens)} for k, d in GRUPOS.items()}
+    if grupo:
+        itens = [x for x in itens if x['grupo'] == grupo]
+    if prioridade:
+        itens = [x for x in itens if x['prioridade'] == prioridade]
+    ordem = {k: n for n, k in enumerate(PRIORIDADES)}
+    itens.sort(key=lambda x: (ordem[x['prioridade']], x['nome'].casefold()))
+    tamanho = 24
+    paginas = max(1, (len(itens) + tamanho - 1) // tamanho)
+    pagina = min(pagina, paginas)
+    inicio = (pagina - 1) * tamanho
+    h._envia(200, {'grupos': grupos, 'prioridades': PRIORIDADES, 'total': len(itens),
+                   'pagina': pagina, 'paginas': paginas, 'itens': itens[inicio:inicio + tamanho],
+                   'campanha': SEGMENTOS.get(segmento, {}).get('nome', ''),
+                   'resumo': resumo, 'auditorias': auditorias})

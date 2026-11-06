@@ -10,7 +10,7 @@ VIEWS.campanhas = async () => {
   const draw = () => {
     const s = CP.segmentos.find(x=>x.id===segAberto), fu = CP.followup;
     $("#page").innerHTML = `<div class="ph fade"><div><h1>Campanhas</h1><p>Cada empresa cai num segmento pela situação dela (site, Instagram, reputação). Cada segmento tem estratégia e roteiros próprios, e o disparo automático alterna entre as variações para não repetir o mesmo texto.</p></div>
-      <div class="acts"><a class="btn" href="#/agente">${ic("send")}Disparo automático</a><button class="btn pri" id="cpSalva">${ic("check")}Salvar campanhas</button></div></div>
+      <div class="acts"><a class="btn" href="#/oportunidades">${ic("trend")}Priorizar leads</a><a class="btn" href="#/agente">${ic("send")}Disparo automático</a><button class="btn pri" id="cpSalva">${ic("check")}Salvar campanhas</button></div></div>
       <div class="grid fade" style="grid-template-columns:${innerWidth<860?"1fr":"minmax(0,300px) minmax(0,1fr)"};align-items:start">
         <div class="card tpl-list" style="overflow:hidden">${CP.segmentos.map((x,i)=>`<div class="it ${x.id===segAberto?"on":""}" data-s="${x.id}">
             <div class="row"><b>${i+1}. ${esc(x.nome)}</b><span class="pill ${x.ativo?"s-fechado":"s-descartado"} nodot" style="margin-left:auto">${x.ativo?"ligado":"desligado"}</span></div>
@@ -25,6 +25,7 @@ VIEWS.campanhas = async () => {
             <button class="btn sm" data-fadd="${k}" style="margin-top:6px">${ic("plus")}Variação</button>`).join("")}`
           :`<div class="row"><h3 style="margin:0">${esc(s.nome)}</h3><div class="sp"></div><label class="switch"><input type="checkbox" id="sgOn" ${s.ativo?"checked":""}> Ligado</label></div>
           <p class="muted sm">${esc(s.descricao)} · ${fN(s.total)} leads com WhatsApp, ${fN(s.na_fila)} na fila do disparo.</p>
+          <p class="sm"><a href="#/oportunidades/${encodeURIComponent(s.id)}">Ver oportunidades desta campanha →</a></p>
           <label class="lbl">Estratégia (a IA segue isto ao escrever e ao responder esse lead)</label>
           <textarea class="in" id="sgEst" rows="3" style="width:100%">${esc(s.estrategia)}</textarea>
           <label class="lbl">Variações da primeira mensagem <span class="muted">(o robô alterna entre elas)</span></label>

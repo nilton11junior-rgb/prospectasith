@@ -172,6 +172,7 @@ function desenhaLead(){
       ${botaoAuditarLead(l.id)} ${botaoExcluirLead(l.id)}
     </div>
     <div class="dr-b">
+      <div id="drOportunidade"></div>
       ${num?`<div class="row" style="gap:8px;margin-bottom:6px">
           ${tpls.length?`<select class="in" id="tplSel" style="flex:1;min-width:0">${tpls.map(t=>`<option value="${esc(t.id)}" ${t.id===tplSel?"selected":""}>${esc(t.nome)}</option>`).join("")}</select>`:""}
           <a class="btn wa" id="drWa" href="#" target="_blank" rel="noopener">${ic("wa")}${l.whatsapp?"Chamar no WhatsApp":"Tentar WhatsApp"}</a></div>
@@ -210,6 +211,7 @@ function desenhaLead(){
       <div class="tl" style="margin-top:14px">${[...(l.historico||[])].reverse().map(e=>`<div class="tl-i"><div class="tl-d">${ic(icEv[e.tipo]||"note")}</div><div><div class="tl-t">${esc(e.tipo==="whatsapp"?"Chamado no WhatsApp":e.tipo==="ligacao"?"Ligação":e.tipo==="email"?"E-mail enviado":e.txt)}</div><div class="tl-m">${fData(e.t)}</div></div></div>`).join("")}</div>
     </div>`;
   $("#drX").onclick = fechaLead;
+  Oportunidades.mostrarFicha(l.id, $("#drOportunidade"));
   const wa = $("#drWa");
   if(wa){
     const atual = () => tpls.find(t=>t.id===($("#tplSel")?.value||tplSel)) || tpls[0];

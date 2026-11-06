@@ -355,6 +355,7 @@ def main():
     sessoes.update(_le(ARQ_SESSOES, {}))
     threading.Thread(target=trabalhador, daemon=True).start()
     threading.Thread(target=exclusao_buscas.trabalhador_limpeza, daemon=True).start()
+    threading.Thread(target=rotas_auditoria.agendar_automaticas, daemon=True, name="agenda-auditoria").start()
     if "--sem-automacoes" not in sys.argv:
         threading.Thread(target=disparador, daemon=True).start()
         threading.Thread(target=respondedor, daemon=True).start()

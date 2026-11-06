@@ -2,6 +2,8 @@
 
 Abra **Auditoria digital** em Leads, nos resultados de uma busca ou na ficha da empresa. **Auditar empresas da busca** coloca os leads ainda sem relatório em uma fila local. Os resultados ficam salvos na ficha. Execute novamente para atualizar uma empresa.
 
+A fila automática encontra os leads de prospecção que ainda precisam da primeira auditoria. Abra **Campanhas → Priorizar leads** para comparar oportunidades por evidência e próximo passo, ou abra o mini relatório na ficha. Cada campanha permite consultar seu próprio público. A primeira mensagem sugerida segue o método comercial do CRM e fica disponível para copiar e revisar. Leads em conversa ou reunião recebem o próximo passo correspondente.
+
 O CRM visita o endereço público cadastrado e até três páginas de contato ou institucionais do mesmo domínio. A medição inicial registra o HTTP, o tempo até os cabeçalhos e o tempo de leitura do HTML. O relatório também mostra HTTPS, título, descrição, H1, viewport, meta noindex e imagens sem atributo alt. Configure a chave oficial do PageSpeed Insights na variável de ambiente `SITH_PAGESPEED_KEY` antes de iniciar o painel para obter Lighthouse móvel automaticamente. O botão **Abrir PageSpeed Insights** permite executar a medição na ferramenta do Google.
 
 O CNPJ publicado é validado pelos dígitos verificadores e consultado na BrasilAPI. O painel pede revisão quando há vários números ou quando o cadastro diverge do nome ou localidade do lead. Para sites sem CNPJ visível, informe o número na ficha. Os contatos do cadastro são da empresa. Contatos diretos são associados aos sócios pelo nome explícito no site e o e-mail profissional precisa usar o domínio da página consultada.
