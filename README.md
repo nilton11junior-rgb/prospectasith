@@ -41,6 +41,7 @@ python -X utf8 scripts/verificar.py
 | [docs/onboarding.md](docs/onboarding.md) | preparar a máquina e o primeiro uso |
 | [docs/architecture.md](docs/architecture.md) | mapa do código, fronteiras e dados |
 | [docs/design.md](docs/design.md) | interface do painel |
+| [docs/auditoria.md](docs/auditoria.md) | auditoria digital, cadastro, rastreamento e evidências de anúncios |
 | [docs/exclusao-buscas.md](docs/exclusao-buscas.md) | exclusão individual/em lote e remoção dos leads vinculados |
 | [docs/estrategia-vendas.md](docs/estrategia-vendas.md) | método de vendas que gera as mensagens e o comportamento da IA |
 | [docs/quality.md](docs/quality.md) | checagens, testes, revisão de segurança e do harness |

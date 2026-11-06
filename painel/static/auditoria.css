@@ -1,0 +1,18 @@
+.audit-dialog{width:min(960px,calc(100vw - 24px))}
+.audit-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.audit-top h2{margin:0 0 6px}
+.audit-coleta{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.audit-coleta label,.audit-evidencia label{display:grid;gap:5px;font-size:13px;color:var(--muted)}
+.audit-coleta .in{width:min(220px,100%)}
+.audit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 20px}
+.audit-card{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:14px;overflow-wrap:anywhere}
+.audit-card h3{font-size:15px;margin:0 0 8px}
+.audit-card p{margin:8px 0}
+.audit-card dl{display:grid;grid-template-columns:minmax(90px,1fr) 2fr;gap:4px 12px;font-size:13px}
+.audit-card dt{color:var(--muted)}
+.audit-card dd{margin:0}
+.audit-card ul{margin:8px 0;padding-left:18px}
+.audit-card li{margin:6px 0}
+.audit-evidencia{display:grid;gap:10px}
+.audit-evidencia button{justify-self:start}
+@media(max-width:640px){.audit-grid{grid-template-columns:minmax(0,1fr)}}

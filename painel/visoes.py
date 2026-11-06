@@ -18,7 +18,7 @@ def resumo_busca(b):
 
 
 def lead_publico(l):
-    return {k: v for k, v in l.items() if k != "historico"} | {"n_hist": len(l.get("historico", [])),
+    return {k: v for k, v in l.items() if k not in ("historico", "auditoria")} | {"n_hist": len(l.get("historico", [])),
                                                                 "segmento": segmento_de(l) or segmento_de(l, so_ativos=False)}
 
 

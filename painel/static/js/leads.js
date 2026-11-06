@@ -111,7 +111,7 @@ function tabelaLeads(el, fonte, chave, comAcoesTopo){
         ${th("nome","Empresa")}${th("bairro","Local")}${th("telefone","Telefone")}${th("contato","Canais")}${th("nota","Nota")}${th("status","Status")}${th("atualizado_em","Atualizado")}</tr></thead>
       <tbody>${vis.map(l=>`<tr data-id="${esc(l.id)}" class="${TB.sel.has(l.id)?"sel":""}">
         <td class="chk"><input type="checkbox" data-sel="${esc(l.id)}" ${TB.sel.has(l.id)?"checked":""}></td>
-        <td><div class="lead-n">${esc(l.nome)}</div><div class="lead-c">${esc(l.categoria)}${l.fechado?' · <b style="color:var(--err)">fechado</b>':""}</div>${botaoExcluirLead(l.id)}</td>
+        <td><div class="lead-n">${esc(l.nome)}</div><div class="lead-c">${esc(l.categoria)}${l.fechado?' · <b style="color:var(--err)">fechado</b>':""}</div>${botaoAuditarLead(l.id)} ${botaoExcluirLead(l.id)}</td>
         <td><div class="sm">${esc(l.bairro||"—")}</div><div class="lead-c">${esc([l.cidade,l.uf].filter(Boolean).join(" - "))}</div></td>
         <td class="num sm" style="white-space:nowrap">${esc(l.telefone||"—")}</td>
         <td><div class="ok-ico"><span class="wa ${l.whatsapp?"on":""}" title="WhatsApp">${ic("wa")}</span><span class="em ${l.email?"on":""}" title="E-mail">${ic("mail")}</span><span class="ws ${l.site?"on":""}" title="Site">${ic("globe")}</span><span class="ig ${l.instagram?"on":""}" title="Instagram">${ic("ig")}</span></div></td>
@@ -131,7 +131,7 @@ function tabelaLeads(el, fonte, chave, comAcoesTopo){
     $("#selAll",el).onchange = e => { vis.forEach(l=> e.target.checked ? TB.sel.add(l.id) : TB.sel.delete(l.id)); draw(); };
     $$("tbody tr",el).forEach(tr => tr.onclick = e => {
       if(e.target.matches("input[type=checkbox]")){ const id=e.target.dataset.sel; e.target.checked?TB.sel.add(id):TB.sel.delete(id); draw(); return; }
-      if(e.target.closest(".chk, [data-excluir-lead]")) return;
+      if(e.target.closest(".chk, [data-excluir-lead], [data-auditar-lead]")) return;
       abreLead(tr.dataset.id); });
     $("#pA",el) && ($("#pA",el).onclick = () => { TB.pag--; draw(); });
     $("#pP",el) && ($("#pP",el).onclick = () => { TB.pag++; draw(); });
@@ -169,7 +169,7 @@ function desenhaLead(){
       <div class="row" style="margin-bottom:8px">${pillSt(l.status)}${l.fechado?'<span class="pill s-descartado nodot">Fechado permanentemente</span>':""}</div>
       <h2>${esc(l.nome)}</h2>
       <div class="muted sm" style="margin-top:4px">${esc(l.categoria)}${l.nota?` · <span class="stars">★</span> ${fNota(l.nota)} (${fN(l.avaliacoes)} avaliações)`:""}</div>
-      ${botaoExcluirLead(l.id)}
+      ${botaoAuditarLead(l.id)} ${botaoExcluirLead(l.id)}
     </div>
     <div class="dr-b">
       ${num?`<div class="row" style="gap:8px;margin-bottom:6px">

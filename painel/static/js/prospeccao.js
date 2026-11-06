@@ -176,6 +176,7 @@ function viewBusca(id){
     ${progresso}
     ${b.estado==="erro"?`<div class="note err fade" style="margin-bottom:16px">${ic("flag")}<span><b>Deu erro:</b> ${esc(b.etapa)}</span></div>`:""}
     ${(b.avisos||[]).map(a=>`<div class="note" style="margin-bottom:10px">${esc(a)}</div>`).join("")}
+    ${b.total && !rodando ? `<div class="acts" style="margin-bottom:16px"><button class="btn" id="bAuditarB">${ic("search")}Auditar empresas da busca</button></div>` : ""}
     ${b.total?`<div class="grid g4 fade" style="margin-bottom:16px">
       <div class="card kpi"><div class="l">Empresas</div><div class="n num">${fN(b.total)}</div><div class="s">${fN(b.novos??b.total)} novas na base</div></div>
       <div class="card kpi"><div class="l">Com WhatsApp</div><div class="n num" style="color:var(--wa)">${fN(b.com_whatsapp)}</div><div class="s">${fPct(b.com_whatsapp,b.total)}</div></div>
@@ -187,6 +188,7 @@ function viewBusca(id){
     $("#bRep").textContent='Abrir no mapa';$("#bRep").onclick=()=>location.hash=`#/scraper/${encodeURIComponent(b.scraper_job_id)}`;
   }else $("#bRep") && ($("#bRep").onclick = async()=>{ if(!confirma("rep"+id,"Rodar esta busca de novo? Leads novos entram na base; status e anotações dos atuais são mantidos.")) return; await api(`/api/buscas/${id}/repetir`,{method:"POST"}); await carregaBuscas(); render(); });
   $("#bDel").onclick = ()=>ExclusaoBuscas.abrir([id]);
+  if($("#bAuditarB")) $("#bAuditarB").onclick = e=>AuditoriaDigital.enfileirarBusca(id, e.currentTarget);
   if($("#tbl")) api(`/api/buscas/${id}`).then(d => { const ids=new Set(d.lead_ids); const fonte = () => S.leads.filter(l=>ids.has(l.id));
     $("#bExpB") && ($("#bExpB").onclick = () => exportaCsv(fonte(), semAc(b.parametros.nichos[0]).replace(/\W+/g,"-")+"_"+semAc(b.parametros.cidade).replace(/\W+/g,"-")));
     tabelaLeads($("#tbl"), fonte, "b_"+id); });

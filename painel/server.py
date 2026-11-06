@@ -26,6 +26,7 @@ from buscas import trabalhador
 from estado import kit
 import lixeira
 import rotas_atendimento
+import rotas_auditoria
 import rotas_lixeira
 import rotas_scraper
 import exclusao_buscas
@@ -177,7 +178,8 @@ class H(BaseHTTPRequestHandler):
 
     # ── atendimento: WhatsApp, conversas, agente, agenda ──
     def _atendimento(self, metodo, path):
-        return rotas_scraper.atender(self, metodo, path) or rotas_lixeira.atender(self, metodo, path) or rotas_atendimento.atender(self, metodo, path)
+        return (rotas_auditoria.atender(self, metodo, path) or rotas_scraper.atender(self, metodo, path)
+                or rotas_lixeira.atender(self, metodo, path) or rotas_atendimento.atender(self, metodo, path))
 
     def do_GET(self):
         if self._guarda("GET"):

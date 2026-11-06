@@ -9,6 +9,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import types  # noqa: E402
 import agente, agenda, buscas, campanhas, disparo, estado, lixeira, normaliza, rotas_auth, seguranca_http, server, whatsapp  # noqa: E402,F401
 
+if os.path.realpath(estado.DADOS) != os.path.realpath(TMP):
+    raise RuntimeError("Os testes precisam importar o painel depois de isolar a pasta de dados.")
+
 # um só namespace com os módulos do painel: os testes não dependem de onde cada função mora
 app = types.SimpleNamespace(**{k: v for m in (estado, normaliza, campanhas, agenda, whatsapp, disparo, server)
                                for k, v in vars(m).items() if not k.startswith("__")})
