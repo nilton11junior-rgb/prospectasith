@@ -139,6 +139,7 @@ const ScraperUI = (() => {
         <select id="scJob" class="in"><option>Carregando buscas…</option></select><button class="btn sm" type="button" id="scRefresh" aria-label="Atualizar buscas">${ic('refresh')}</button></div>
         <div class="sc-map-wrap"><div id="scMap" aria-label="Mapa das empresas encontradas"></div><span class="sc-map-note" id="scMapNote">O mapa acompanha a busca selecionada</span></div>
         <div class="sc-map-status"><span id="scConnection" class="sc-connection">Conectando…</span><span id="scJobState">Escolha uma busca</span></div>
+        <div id="scMapFalha" class="sc-map-status" role="status" hidden>Fundo do mapa indisponível. As buscas e a lista continuam disponíveis.</div>
       </section></div>
       <section class="card sc-results"><div class="sc-result-head"><div><h2>Empresas encontradas</h2><p>Importar reúne os resultados à sua base e mantém o histórico de cada lead.</p></div>
         <div class="row sc-import-actions"><span id="scImported"></span><button id="scImport" class="btn pri" disabled>Importar para o CRM</button></div></div>

@@ -31,7 +31,7 @@ import rotas_lixeira
 import rotas_scraper
 import exclusao_buscas
 import rotas_auth
-from seguranca_http import (CABECALHOS_SEGURANCA, LIMITE_CORPO, host_permitido, nome_host, origem_permitida)
+from seguranca_http import (CABECALHOS_SEGURANCA, LIMITE_CORPO, host_permitido, host_publico, origem_permitida)
 
 
 def migra_roteiros():
@@ -120,8 +120,7 @@ class H(BaseHTTPRequestHandler):
         return ""
 
     def _autorizado(self):
-        tok = self.headers.get("X-Prospecta-Token")
-        if tok and hmac.compare_digest(tok, API_TOKEN):
+        if self._token_ok():
             return True
         c = self._cookie()
         with lock:
@@ -132,6 +131,8 @@ class H(BaseHTTPRequestHandler):
                 or (metodo == "POST" and path == "/api/wa/evento"))
 
     def _token_ok(self):
+        if host_publico(self.headers.get("Host")):
+            return False
         tok = self.headers.get("X-Prospecta-Token")
         return bool(tok) and hmac.compare_digest(tok, API_TOKEN)
 
@@ -139,9 +140,8 @@ class H(BaseHTTPRequestHandler):
         """Barreiras antes de qualquer rota. Devolve True se já respondeu (bloqueou)."""
         path = self._rota()
         webhook = metodo == "POST" and path == "/api/wa/evento"
-        # DNS rebinding: só aceita os nomes do próprio computador (e o do Tailscale); o container do WAHA
-        # chega como host.docker.internal, só no webhook
-        if not host_permitido(nome_host(self.headers.get("Host")), webhook):
+        # O host de produção é explícito; o WAHA usa o endereço interno só no webhook.
+        if not host_permitido(self.headers.get("Host"), webhook):
             self._envia(403, {"erro": "Host não permitido."})
             return True
         if int(self.headers.get("Content-Length") or 0) > LIMITE_CORPO:

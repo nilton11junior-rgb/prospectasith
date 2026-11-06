@@ -58,7 +58,7 @@ painel ──HTTP──▶ sites das empresas (enriquecimento) e nominatim.opens
 - Opt-out vale pelo número em qualquer registro; a IA não recebe as anotações privadas, reserva no máximo 1 horário futuro por lead e responde no máximo 30 vezes por dia por conversa. O MCP não liga o disparo automático.
 - Mensagem só sai para número que bate com um lead (DDD + 8 dígitos, ignorando 55 e o 9º dígito).
 - As rotas `/api/scraper/*` herdam as mesmas barreiras de Host, sessão, Origin/CSRF e JSON. O destino do motor é loopback, sem redirects ou proxy do ambiente, com timeout de 15 s e resposta até 20 MiB. O UUID é validado; o navegador nunca escolhe URL/caminho.
-- O CSP permite imagens de `*.tile.openstreetmap.org` para o mapa. Scripts continuam locais; não foi aberto CORS nem incluído iframe.
+- O CSP permite imagens de `tile.openstreetmap.org` para o mapa. Cada imagem do mapa envia apenas a origem do painel no cabeçalho `Referer`. O painel mantém a política padrão `no-referrer` nas demais requisições.
 - `--sem-automacoes` no servidor não inicia `disparador`/`respondedor`. Atendimento manual e configuração continuam disponíveis; o modo é mostrado na interface e não regrava preferências.
 
 ## Dados (`painel/dados/`)

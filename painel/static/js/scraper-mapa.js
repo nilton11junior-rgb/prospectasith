@@ -12,8 +12,19 @@ const ScraperMapa = (() => {
     if(!window.L){ el.textContent='Mapa indisponível. A lista e a importação continuam disponíveis.'; return; }
     mapa=L.map(el,{zoomControl:false,scrollWheelZoom:false}).setView([-23.5505,-46.6333],11);
     L.control.zoom({position:'bottomright'}).addTo(mapa);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      maxZoom:19,subdomains:'abc',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>'
+    const aviso=$('#scMapFalha');
+    const tilesComFalha=new Set();
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19,
+      referrerPolicy:'strict-origin',
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
+    }).on('tileerror',({tile})=>{
+      tile.style.visibility='hidden';
+      tilesComFalha.add(tile);
+      aviso.hidden=false;
+    }).on('tileunload',({tile})=>{
+      tilesComFalha.delete(tile);
+      aviso.hidden=tilesComFalha.size===0;
     }).addTo(mapa);
     pontos=L.layerGroup().addTo(mapa);
     setTimeout(()=>{if(mapa && el.isConnected) mapa.invalidateSize();},100);

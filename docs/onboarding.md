@@ -1,10 +1,18 @@
 # Onboarding
 
+## Instalar a partir do GitHub (Windows x64)
+
+1. Aceite o convite do repositório privado e clone o projeto na pasta de sua preferência.
+2. Na página **Releases** do mesmo repositório, baixe `prospectasith-motores-windows-x64.zip` e extraia na raiz do clone. A pasta `engine/` deverá conter `google-maps-scraper.exe` e `sithia-scraper.exe`.
+3. Instale o Python 3.12 e abra `Central SITH.IA.cmd`. No primeiro acesso, crie sua senha. Se quiser usar o WhatsApp, instale também o Docker Desktop e pareie sua sessão.
+
+Cada instalação cria sua própria base local e pode rodar de forma independente. A base, os logins, as configurações e as sessões de WhatsApp não são compartilhados entre computadores.
+
 ## Pré-requisitos (Windows 11)
 
 - `uv` com Python 3.12 (`uv python install 3.12`). O `Prospeccao.cmd` usa `%APPDATA%\uv\python\cpython-3.12-windows-x86_64-none\python.exe` e cai em `python` se não achar.
 - Motor de busca: `engine/google-maps-scraper.exe` (release oficial gosom v1.18.1, sha256 `c124fab3…f7848f`). Fica fora do git; baixe de https://github.com/gosom/google-maps-scraper/releases se faltar. No primeiro job ele baixa Playwright + Chromium (~150 MB).
-- SITH.IA Scraper em `../../mazyos-scraper/sithia-scraper.exe` (ou `SITH_SCRAPER_EXE`): motor adicional em 8081, instalado e personalizado neste PC. Sua pasta `webdata` é preservada.
+- SITH.IA Scraper em `engine/sithia-scraper.exe` ou, para instalações anteriores, em `../../mazyos-scraper/sithia-scraper.exe`. A variável `SITH_SCRAPER_EXE` permite indicar outro caminho. Sua pasta `webdata` é preservada.
 - Docker Desktop (para o WhatsApp/WAHA). Na primeira abertura aceite os termos.
 - Claude Code instalado e logado (`claude`) para o agente IA, ou uma chave da Anthropic na tela Agente IA.
 - Node.js (opcional): só para `scripts/verificar.py` checar a sintaxe do JavaScript.

@@ -7,6 +7,18 @@ from unittest.mock import patch
 
 
 class ConfigCentral(unittest.TestCase):
+    def test_localiza_scraper_do_pacote_windows_no_clone(self):
+        from central_config import caminhos_scraper
+
+        with tempfile.TemporaryDirectory(prefix='sith-config-') as tmp, patch.dict(os.environ):
+            os.environ.pop('SITH_SCRAPER_EXE', None)
+            os.environ.pop('SITH_SCRAPER_DATA', None)
+            engine = Path(tmp) / 'engine'
+            engine.mkdir()
+            exe = engine / 'sithia-scraper.exe'
+            exe.write_bytes(b'fixture-nao-executavel')
+            self.assertEqual(caminhos_scraper(tmp), (str(exe), str(engine / 'webdata')))
+
     def test_localiza_sithia_instalado_ao_lado_dos_projetos(self):
         # Importado dentro do teste para que a ausência da interface apareça como falha descritiva.
         import importlib.util

@@ -96,6 +96,16 @@ Não coberto: ataque com navegador real (SameSite/rebinding foram raciocinados e
 - Verificar: `python -X utf8 scripts/verificar.py`
 - Reaplicar este setup: rodar o prompt 12 de novo com a mesma revisão do toolkit (ou uma nova, registrada aqui); ele preserva customizações e não deve duplicar seções/MCP.
 - Revisar de novo: mudança em login, webhook, IA ou disparo → revisão de segurança; mudança em AGENTS/CLAUDE/MCP → casos do harness.
+
+### Publicação privada via Cloudflare Tunnel
+
+1. Prepare uma VPS Linux x86_64 com disco persistente. Execute uma única instância do CRM com Python 3.12 e aponte `PROSPECTA_DADOS` para um diretório persistente com acesso limitado ao usuário do serviço. Suba os dois motores de busca e mantenha os serviços internos restritos à máquina ou à rede privada entre contêineres.
+2. Defina `PROSPECTA_PUBLIC_HOST` com o hostname exato, sem protocolo nem porta. Inicie o painel com `python -X utf8 painel/server.py --sem-navegador --sem-automacoes`. Crie a senha do aplicativo localmente por encaminhamento SSH para a porta 8090.
+3. No Cloudflare Access, proteja o hostname inteiro com política de permissão para os dois e-mails exatos e o provedor de identidade de vocês. No Tunnel, direcione esse hostname a `http://127.0.0.1:8090`, preserve o Host original e habilite **Protect with Access** usando o nome da equipe e o AUD do aplicativo. Configure o acesso público pelo hostname HTTPS com redirecionamento de HTTP e sem cache de páginas ou API autenticadas. Não publique as portas 8090, 8080, 8081 ou 3000.
+4. Configure o WAHA e `WAHA_HOOK_BASE` para que o webhook chegue por um caminho privado. O endereço público do CRM rejeita o webhook e o token de API local. O cookie desse endereço tem `Secure` e o painel exige origem HTTPS exata em ações do navegador.
+5. Em uma rede externa, verifique o bloqueio de um terceiro e o acesso dos dois sócios à mesma base de teste. Faça uma busca em cada motor, teste o webhook privado e restaure um backup cifrado em outra instância antes de migrar a base.
+
+[Cloudflare Access e Tunnel](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/) · [Protect with Access](https://developers.cloudflare.com/tunnel/reference/origin-parameters/)
 - Atualizar WAHA: `docker compose -f whatsapp/docker-compose.yml pull` e conferir o QR/sessão.
 
 ## Pendências

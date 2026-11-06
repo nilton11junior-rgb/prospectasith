@@ -1,7 +1,7 @@
 """Rotas de login: estado, criar a senha (só no próprio computador), entrar com bloqueio e sair."""
 import time
 from estado import ARQ_SESSOES, _grava, auth_configurado, confere_senha, define_senha, lock, nova_sessao, sessoes
-from seguranca_http import (HOSTS_LOCAIS, login_bloqueado,
+from seguranca_http import (HOSTS_LOCAIS, host_publico, login_bloqueado,
                             nome_host, registra_falha_login)
 
 
@@ -12,6 +12,9 @@ def atender(h, metodo, path):
         return h._envia(404, {"erro": "não encontrado"})
     d = h._corpo()
     senha = str(d.get("senha") or "")
+    atributos_cookie = "; HttpOnly; SameSite=Strict"
+    if host_publico(h.headers.get("Host")):
+        atributos_cookie += "; Secure"
     if path == "/api/auth/criar":
         if auth_configurado():
             return h._envia(409, {"erro": "A senha já foi criada."})
@@ -32,9 +35,9 @@ def atender(h, metodo, path):
         with lock:
             sessoes.pop(h._cookie(), None)
             _grava(ARQ_SESSOES, sessoes)
-        h._extra = [("Set-Cookie", "prospecta=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict")]
+        h._extra = [("Set-Cookie", f"prospecta=; Path=/; Max-Age=0{atributos_cookie}")]
         return h._envia(200, {"ok": True})
     else:
         return h._envia(404, {"erro": "não encontrado"})
-    h._extra = [("Set-Cookie", f"prospecta={nova_sessao()}; Path=/; Max-Age={30 * 86400}; HttpOnly; SameSite=Strict")]
+    h._extra = [("Set-Cookie", f"prospecta={nova_sessao()}; Path=/; Max-Age={30 * 86400}{atributos_cookie}")]
     return h._envia(200, {"ok": True})

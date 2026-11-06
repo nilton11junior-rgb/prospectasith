@@ -1,6 +1,7 @@
 """Regressões da revisão de segurança de 24/10/2026 (relatório privado fora do repositório)."""
 import unittest
 from datetime import datetime, timedelta
+from unittest.mock import patch
 from testes_comum import (HttpBase, TMP, agente, agenda, app, buscas, lead, lixeira, reinicia, rotas_auth, seguranca_http, server)  # noqa: E402,F401
 
 
@@ -56,7 +57,7 @@ class Seguranca(unittest.TestCase):
 
 
 class SegurancaHttp(HttpBase):
-    def bruto(self, caminho, metodo="GET", corpo=b"", **h):
+    def bruto(self, caminho, metodo="GET", corpo=b"", cabecalho="X-Frame-Options", **h):
         import http.client
         c = http.client.HTTPConnection("127.0.0.1", self.srv.server_address[1], timeout=10)
         c.putrequest(metodo, caminho, skip_host=True)
@@ -65,11 +66,44 @@ class SegurancaHttp(HttpBase):
         c.putheader("Content-Length", str(len(corpo)))
         c.endheaders(corpo)
         r = c.getresponse()
-        return r.status, r.getheader("X-Frame-Options")
+        return r.status, r.getheader(cabecalho)
 
     def test_host_estranho_bloqueado_dns_rebinding(self):
         self.assertEqual(self.bruto("/", Host="evil.example:8090")[0], 403)
         self.assertEqual(self.bruto("/", Host="localhost:8090")[0], 200)
+
+    @patch.dict("os.environ", {"PROSPECTA_PUBLIC_HOST": "crm.empresa.example"})
+    def test_host_publico_aceita_login_https_com_cookie_seguro(self):
+        reinicia()
+        self.addCleanup(reinicia)
+        host = "crm.empresa.example"
+        corpo = b'{"senha":"teste-remoto-123"}'
+        self.assertEqual(self.bruto("/", Host=host)[0], 200)
+        self.assertEqual(self.bruto("/", Host=f"{host}.evil.example")[0], 403)
+        self.assertEqual(self.bruto("/", Host=f"{host}:8090")[0], 403)
+        self.assertEqual(self.bruto("/api/auth/criar", "POST", corpo, Host=host, Origin=f"https://{host}",
+                                    Content_Type="application/json")[0], 403)
+        app.define_senha("teste-remoto-123")
+        for origem in (f"http://{host}", f"https://outro.{host}"):
+            self.assertEqual(self.bruto("/api/auth/entrar", "POST", corpo, Host=host, Origin=origem,
+                                        Content_Type="application/json")[0], 403)
+        status, cookie = self.bruto("/api/auth/entrar", "POST", corpo, cabecalho="Set-Cookie", Host=host,
+                                    Origin=f"https://{host}", Content_Type="application/json")
+        self.assertEqual(status, 200)
+        self.assertIn("Secure", cookie.split("; "))
+        self.assertEqual(self.bruto("/api/leads", Host=host, Cookie=cookie.split(";")[0])[0], 200)
+        status, cookie = self.bruto("/api/auth/sair", "POST", b"{}", cabecalho="Set-Cookie", Host=host,
+                                    Origin=f"https://{host}", Content_Type="application/json",
+                                    Cookie=cookie.split(";")[0])
+        self.assertEqual(status, 200)
+        self.assertIn("Secure", cookie.split("; "))
+
+    @patch.dict("os.environ", {"PROSPECTA_PUBLIC_HOST": "crm.empresa.example"})
+    def test_host_publico_nao_aceita_token_local_nem_webhook(self):
+        host = "crm.empresa.example"
+        self.assertEqual(self.bruto("/api/leads", Host=host, X_Prospecta_Token=app.API_TOKEN)[0], 401)
+        self.assertEqual(self.bruto("/api/wa/evento", "POST", b"{}", Host=host, X_WA_Token=app.WA_TOKEN,
+                                    Content_Type="application/json")[0], 403)
 
     def test_post_do_navegador_exige_origem_e_json(self):
         porta = self.srv.server_address[1]

@@ -6,6 +6,8 @@ A central reúne o CRM Prospecta e o SITH.IA Scraper, com a logo original, tema 
 
 ## Rodar
 
+Para instalar em outro computador, siga o [passo a passo para um clone novo](docs/onboarding.md#instalar-a-partir-do-github-windows-x64).
+
 ```powershell
 & '.\Central SITH.IA.cmd'
 ```
