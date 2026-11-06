@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Liga a Central SITH.IA: motores nativos, WhatsApp (WAHA no Docker Desktop) e painel.
+"""Liga a Prospecta SITH.IA: motores nativos, WhatsApp (WAHA no Docker Desktop) e painel.
 
 Cada serviço só sobe se a porta dele ainda estiver livre, então rodar de novo não duplica nada.
 Logs em painel/dados/logs/. Ctrl+C (ou fechar a janela) desliga o que este script ligou.
@@ -122,7 +122,7 @@ def main():
         painel_cmd.append("--sem-automacoes")
     sobe("Painel", 8090, painel_cmd)
     threading.Thread(target=iniciar_whatsapp, daemon=True).start()
-    print("\nCentral SITH.IA no ar: http://127.0.0.1:8090   (feche esta janela para desligar)")
+    print("\nProspecta SITH.IA no ar: http://127.0.0.1:8090   (feche esta janela para desligar)")
     if "--sem-automacoes" in sys.argv:
         print("Envios automáticos pausados nesta abertura; configurações salvas foram preservadas.")
     if "--sem-navegador" not in sys.argv:

@@ -35,7 +35,7 @@ VIEWS.whatsapp = async (numero) => {
     : wa.conexao==="qr" && wa.qr ? `<div class="qr"><img src="${wa.qr}" alt="QR Code do WhatsApp"><div class="sm muted" style="text-align:center">No celular: WhatsApp → <b>Dispositivos conectados</b> → <b>Conectar dispositivo</b> e aponte para o código.</div></div>`
     : wa.servico ? `<div class="row"><span class="dot"></span><b>${{iniciando:"Iniciando…",parado:"Desconectado",erro:"QR Code venceu",sem_sessao:"Não conectado"}[wa.conexao]||esc(wa.conexao)}</b></div>
       <div class="row" style="margin-top:10px"><button class="btn pri sm" id="waCon">${ic("wa")}Conectar WhatsApp</button></div>`
-    : `<div class="note err">${ic("flag")}<span>Serviço de WhatsApp desligado. Abra o sistema pelo <b>Central SITH.IA.cmd</b>.${wa.erro?`<br><small>${esc(wa.erro)}</small>`:""}</span></div>`;
+    : `<div class="note err">${ic("flag")}<span>Serviço de WhatsApp desligado. Abra o sistema pelo <b>Prospecta SITH.IA.cmd</b>.${wa.erro?`<br><small>${esc(wa.erro)}</small>`:""}</span></div>`;
   const lista = (S.conversas||[]).map(c=>`<a class="it ${cv&&cv.numero===c.numero?"on":""}" href="#/whatsapp/${c.numero}"><div class="row"><b>${esc(c.nome||fTel(c.numero))}</b>${c.nao_lidas?`<span class="un">${c.nao_lidas}</span>`:""}</div>
       <p>${c.ultima_de&&c.ultima_de!=="lead"?esc(QUEM[c.ultima_de])+": ":""}${esc(c.ultima)}</p><div class="xs muted">${c.ia?"IA ligada":"IA desligada"}${c.aguardando_ia?" · respondendo…":""} · ${fRel(c.ultima_em)}</div></a>`).join("");
   $("#page").innerHTML = `<div class="ph fade"><div><h1>WhatsApp interno</h1><p>Conecte seu aparelho pelo QR Code e acompanhe as conversas com os leads. Conversas pessoais e grupos nunca entram aqui.</p></div></div>

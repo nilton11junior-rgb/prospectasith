@@ -1,4 +1,4 @@
-/* Tela nativa de prospecção no mapa. Usa os tokens da Central SITH.IA. */
+/* Tela nativa de prospecção no mapa. Usa os tokens da Prospecta SITH.IA. */
 .sc-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:stretch;}
 .sc-options{min-width:0;}
 .sc-options summary{padding:18px 20px;border-bottom:1px solid var(--line);font-weight:600;cursor:pointer;}

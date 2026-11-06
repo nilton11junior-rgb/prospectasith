@@ -1,8 +1,8 @@
 # Setup do Vibe Coding Toolkit
 
-## Central SITH.IA — 05/11/2026
+## Prospecta SITH.IA — 05/11/2026
 
-Integração nativa do SITH.IA Scraper ao CRM e identidade preto/roxo, preservando os serviços e ajustes anteriores. Abertura por `Central SITH.IA.cmd`, com automações pausadas. Testes do projeto: 87 aprovados. Skills importadas para o Codex e documentação de entrega em [entrega-central-sith.md](entrega-central-sith.md). As pendências históricas abaixo registram o estado de outubro; a instalação de Superpowers no Codex foi resolvida nesta entrega.
+Integração nativa do SITH.IA Scraper ao CRM e identidade preto/roxo, preservando os serviços e ajustes anteriores. Abertura por `Prospecta SITH.IA.cmd`, com automações pausadas. Testes do projeto: 87 aprovados. Skills importadas para o Codex e documentação de entrega em [entrega-central-sith.md](entrega-central-sith.md). As pendências históricas abaixo registram o estado de outubro; a instalação de Superpowers no Codex foi resolvida nesta entrega.
 
 
 - Toolkit: https://github.com/soumatheusgomes/vibe-coding-toolkit, revisão `790a895304e0c08b70a5b215c9d334f1c86b816c` (18/10/2026), cópia local temporária fora do projeto. Prompt: `docs/prompts/12-existing-project-setup.md`.
