@@ -2,6 +2,13 @@
 import os
 
 
+def comando_motor(raiz):
+    """Motor original (busca avançada). A saída por inatividade padrão é 1 min: quando a 1ª página
+    do Google demora mais que isso, o motor sai antes de abrir as fichas e a busca vem vazia."""
+    return [os.path.join(raiz, 'engine', 'google-maps-scraper.exe'), '-web', '-addr', '127.0.0.1:8080',
+            '-data-folder', os.path.join(raiz, 'engine', 'gmapsdata'), '-exit-on-inactivity', '5m']
+
+
 def caminhos_scraper(raiz):
     configured = os.environ.get('SITH_SCRAPER_EXE')
     folder = os.path.abspath(os.path.join(raiz, os.pardir, os.pardir, 'mazyos-scraper'))

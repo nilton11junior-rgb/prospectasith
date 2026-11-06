@@ -7,7 +7,7 @@ Logs em painel/dados/logs/. Ctrl+C (ou fechar a janela) desliga o que este scrip
     python scripts/iniciar.py [--sem-navegador]
 """
 import os, secrets, shutil, socket, subprocess, sys, threading, time, webbrowser
-from central_config import caminhos_scraper
+from central_config import caminhos_scraper, comando_motor
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 DADOS = os.path.join(RAIZ, "painel", "dados")
@@ -107,7 +107,7 @@ def main():
     # Manter o motor e os dados históricos da busca avançada.
     motor = os.path.join(RAIZ, "engine", "google-maps-scraper.exe")
     if os.path.exists(motor):
-        sobe("Motor de busca", 8080, [motor, "-web", "-addr", "127.0.0.1:8080", "-data-folder", os.path.join(RAIZ, "engine", "gmapsdata")], env={"DISABLE_TELEMETRY": "1"})
+        sobe("Motor de busca", 8080, comando_motor(RAIZ), env={"DISABLE_TELEMETRY": "1"})
     else:
         print("• Motor da busca avançada não encontrado; as outras áreas continuam disponíveis.")
     scraper = caminhos_scraper(RAIZ)

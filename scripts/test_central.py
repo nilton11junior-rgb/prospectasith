@@ -50,6 +50,15 @@ class ConfigCentral(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='sith-config-') as tmp, patch.dict(os.environ, {'SITH_SCRAPER_EXE': str(Path(tmp) / 'inexistente.exe')}):
             self.assertIsNone(module.caminhos_scraper(tmp))
 
+    def test_motor_tolera_pagina_lenta_do_google(self):
+        # Com a saída por inatividade padrão (1 min), a 1ª página do Google às vezes demora mais,
+        # o motor sai antes de abrir as fichas e a busca termina "ok" com 0 empresas.
+        from central_config import comando_motor
+        cmd = comando_motor(r'C:\crm')
+        self.assertEqual(cmd[:4], [os.path.join(r'C:\crm', 'engine', 'google-maps-scraper.exe'), '-web', '-addr', '127.0.0.1:8080'])
+        self.assertEqual(cmd[cmd.index('-data-folder') + 1], os.path.join(r'C:\crm', 'engine', 'gmapsdata'))
+        self.assertEqual(cmd[cmd.index('-exit-on-inactivity') + 1], '5m')
+
 
 if __name__ == '__main__':
     unittest.main()
